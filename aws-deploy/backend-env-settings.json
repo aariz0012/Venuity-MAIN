@@ -1,0 +1,34 @@
+{
+  "OptionSettings": [
+    {
+      "Namespace": "aws:elasticbeanstalk:application:environment",
+      "OptionName": "NODE_ENV",
+      "Value": "production"
+    },
+    {
+      "Namespace": "aws:elasticbeanstalk:application:environment",
+      "OptionName": "PORT",
+      "Value": "8080"
+    },
+    {
+      "Namespace": "aws:elasticbeanstalk:container:nodejs",
+      "OptionName": "NodeVersion",
+      "Value": "16.x"
+    },
+    {
+      "Namespace": "aws:elasticbeanstalk:container:nodejs",
+      "OptionName": "ProxyServer",
+      "Value": "nginx"
+    },
+    {
+      "Namespace": "aws:autoscaling:launchconfiguration",
+      "OptionName": "InstanceType",
+      "Value": "t2.micro"
+    },
+    {
+      "Namespace": "aws:elasticbeanstalk:environment",
+      "OptionName": "EnvironmentType",
+      "Value": "SingleInstance"
+    }
+  ]
+}

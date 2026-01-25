@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://evento-app.netlify.app
+
+# Sitemaps
+Sitemap: https://evento-app.netlify.app/sitemap.xml

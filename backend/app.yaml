@@ -1,0 +1,19 @@
+runtime: nodejs16
+
+env_variables:
+  NODE_ENV: "production"
+  PORT: "8080"
+  MONGODB_URI: "mongodb+srv://khanaariz0012:Aariz0012EventO@evento.uulntnb.mongodb.net/?retryWrites=true&w=majority&appName=EventO"
+  JWT_SECRET: "A15RqFk4Ms6DHPnMuuxUnRQhihJwW5es"
+  JWT_EXPIRE: "30d"
+  EMAIL_SERVICE: "gmail"
+  EMAIL_USERNAME: "khanaariz0012@gmail.com"
+  EMAIL_PASSWORD: "rccidqgpbokigcvr"
+  EMAIL_FROM: "khanaariz0012@gmail.com"
+  TWILIO_ACCOUNT_SID: "YOUR_TWILIO_ACCOUNT_SID"
+  TWILIO_AUTH_TOKEN: "YOUR_TWILIO_AUTH_TOKEN"
+  TWILIO_PHONE_NUMBER: "+16892655819"
+  STRIPE_SECRET_KEY: "YOUR_STRIPE_SECRET_KEY"
+  STRIPE_WEBHOOK_SECRET: "YOUR_STRIPE_WEBHOOK_SECRET"
+  MAX_IMAGE_SIZE: "10485760"
+  MAX_VIDEO_SIZE: "31457280"
