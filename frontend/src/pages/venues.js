@@ -5,16 +5,18 @@ import Layout from '../components/Layout/Layout';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 // Static export - no server-side rendering needed
 
 const VenuesPage = () => {
+  const router = useRouter();
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [showMyVenues, setShowMyVenues] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -51,6 +53,16 @@ const VenuesPage = () => {
   }, []);
 
   useEffect(() => {
+    // Get category from URL query parameter
+    if (router.isReady) {
+      const category = router.query.category;
+      if (category) {
+        setSelectedCategory(category);
+      }
+    }
+  }, [router.isReady, router.query]);
+
+  useEffect(() => {
     const fetchVenues = async () => {
       try {
         setLoading(true);
@@ -58,8 +70,19 @@ const VenuesPage = () => {
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
         
         let url = `${process.env.NEXT_PUBLIC_API_URL}/api/venues`;
+        const params = new URLSearchParams();
+        
         if (isHost && showMyVenues) {
-          url += '?myVenues=true';
+          params.append('myVenues', 'true');
+        }
+        
+        // Add category filter if selected
+        if (selectedCategory) {
+          params.append('venueType', selectedCategory);
+        }
+        
+        if (params.toString()) {
+          url += '?' + params.toString();
         }
         const res = await fetch(url, { headers });
         if (!res.ok) throw new Error('Failed to fetch venues');
@@ -80,7 +103,7 @@ const VenuesPage = () => {
       }
     };
     fetchVenues();
-  }, [showMyVenues, isHost]);
+  }, [showMyVenues, isHost, selectedCategory]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -88,6 +111,11 @@ const VenuesPage = () => {
     // Filtering can be implemented later
     console.log('Search query:', searchQuery);
     console.log('Date range:', dateRange);
+  };
+
+  const handleClearCategory = () => {
+    setSelectedCategory('');
+    router.push('/venues', undefined, { shallow: true });
   };
 
   const handleToggleStatus = async (venueId, currentStatus) => {
@@ -287,6 +315,16 @@ const VenuesPage = () => {
           <select
             id="event-type"
             className="appearance-none w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            value={selectedCategory}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCategory(value);
+              if (value) {
+                router.push(`/venues?category=${value}`, undefined, { shallow: true });
+              } else {
+                router.push('/venues', undefined, { shallow: true });
+              }
+            }}
           >
             <option value="">All Types</option>
             <option value="wedding">Wedding</option>
@@ -322,9 +360,25 @@ const VenuesPage = () => {
         <section className="py-16 bg-gray-50 min-h-[40vh]">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-bold">
-                {showMyVenues ? 'My Venues' : 'Available Venues'}
-              </h2>
+              <div>
+                <h2 className="text-3xl font-bold">
+                  {showMyVenues ? 'My Venues' : 'Available Venues'}
+                </h2>
+                {selectedCategory && !showMyVenues && (
+                  <div className="flex items-center mt-2">
+                    <span className="text-sm text-gray-600 mr-2">
+                      Category: <span className="font-semibold capitalize">{selectedCategory}</span>
+                    </span>
+                    <button
+                      onClick={handleClearCategory}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                      title="Clear category filter"
+                    >
+                      <FaTimes size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
               {showMyVenues && (
                 <span className="text-sm text-gray-600">
                   Showing {venues.length} venue{venues.length !== 1 ? 's' : ''}
@@ -343,13 +397,29 @@ const VenuesPage = () => {
             ) : venues.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <h3 className="text-xl font-semibold mb-2">
-                  {showMyVenues ? 'No venues found' : 'No venues available'}
+                  {selectedCategory 
+                    ? `No venues found for ${selectedCategory}`
+                    : showMyVenues 
+                      ? 'No venues found' 
+                      : 'No venues available'
+                  }
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {showMyVenues
-                    ? 'You have not listed any venues yet.'
-                    : 'There are currently no venues available.'}
+                  {selectedCategory
+                    ? 'Try selecting a different category or clearing the filter.'
+                    : showMyVenues
+                      ? 'You have not listed any venues yet.'
+                      : 'There are currently no venues available.'
+                  }
                 </p>
+                {selectedCategory && (
+                  <button
+                    onClick={handleClearCategory}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors mr-2"
+                  >
+                    Clear Category
+                  </button>
+                )}
                 {isHost && !showMyVenues && (
                   <button
                     onClick={() => setShowMyVenues(true)}
