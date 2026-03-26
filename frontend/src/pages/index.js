@@ -17,7 +17,14 @@ import {
   FiMail, 
   FiPhone, 
   FiClock, 
-  FiArrowRight 
+  FiArrowRight,
+  FiTrendingUp,
+  FiDollarSign,
+  FiHome,
+  FiPlus,
+  FiEdit,
+  FiBarChart2,
+  FiCheckSquare
 } from 'react-icons/fi';
 import { 
   FaStar, 
@@ -31,6 +38,7 @@ import {
 import { motion } from 'framer-motion';
 import Layout from '../components/Layout/Layout';
 import VenueCarousel from '../components/VenueCarousel';
+import { useAuth } from '../context/AuthContext';
 
 // Add your data structures here (categories, featuredVenues, howItWorks, etc.)// Categories Data
 const categories = [
@@ -183,7 +191,78 @@ const blogPosts = [
   }
 ];
 
+// Host-specific data structures
+const hostFeatures = [
+  {
+    id: 1,
+    title: 'Manage Your Venues',
+    description: 'Add, edit, and organize all your event venues in one place with easy-to-use management tools.',
+    icon: <FiHome size={32} />,
+    color: '#4f46e5',
+    link: '/host/venues'
+  },
+  {
+    id: 2,
+    title: 'Track Bookings',
+    description: 'View all booking requests, manage availability, and track your revenue in real-time.',
+    icon: <FiCalendar size={32} />,
+    color: '#10b981',
+    link: '/host/bookings'
+  },
+  {
+    id: 3,
+    title: 'View Analytics',
+    description: 'Get insights into your venue performance, occupancy rates, and customer preferences.',
+    icon: <FiBarChart2 size={32} />,
+    color: '#f59e0b',
+    link: '/host/analytics'
+  },
+  {
+    id: 4,
+    title: 'Customer Management',
+    description: 'Communicate with customers, manage reviews, and build lasting relationships.',
+    icon: <FiUsers size={32} />,
+    color: '#ef4444',
+    link: '/host/customers'
+  }
+];
+
+const hostStats = [
+  { id: 1, label: 'Total Venues', value: '12', icon: <FiHome />, change: '+2 this month' },
+  { id: 2, label: 'Active Bookings', value: '28', icon: <FiCalendar />, change: '+8 this week' },
+  { id: 3, label: 'Monthly Revenue', value: '₹2.4L', icon: <FiDollarSign />, change: '+15% vs last month' },
+  { id: 4, label: 'Customer Rating', value: '4.8', icon: <FiTrendingUp />, change: '+0.2 this month' }
+];
+
+const hostTestimonials = [
+  {
+    id: 1,
+    name: 'Rajesh Kumar',
+    business: 'Grand Banquet Hall',
+    content: 'Venuity has transformed how we manage our venue bookings. We\'ve seen a 40% increase in occupancy since joining!',
+    rating: 5,
+    revenue: '₹8.5L/month'
+  },
+  {
+    id: 2,
+    name: 'Priya Sharma',
+    business: 'Green Garden Events',
+    content: 'The platform is incredibly intuitive and the support team is always there to help. Best decision for our business!',
+    rating: 5,
+    revenue: '₹5.2L/month'
+  },
+  {
+    id: 3,
+    name: 'Amit Patel',
+    business: 'Skyline Rooftop',
+    content: 'Managing multiple venues has never been easier. The analytics help us make data-driven decisions.',
+    rating: 4,
+    revenue: '₹12.3L/month'
+  }
+];
+
 export default function Home() {
+  const { user, host } = useAuth();
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
   const [guests, setGuests] = useState('');
@@ -242,6 +321,165 @@ export default function Home() {
           <FaRegStar key={i} className={styles.starIcon} />
     ));
   };
+
+  // Render host-specific homepage
+  if (host) {
+    return (
+      <Layout>
+        <Head>
+          <title>Venuity Host Dashboard - Manage Your Venues</title>
+          <meta name="description" content="Manage your venues, track bookings, and grow your event business" />
+        </Head>
+
+        <main className={styles.main}>
+          {/* Host Hero Section */}
+          <section className={`${styles.hero} ${styles.hostHero}`}>
+            <div className={styles.heroContent}>
+              <h1>Welcome back, {host.businessName || host.fullName}!</h1>
+              <p>Manage your venues and grow your event business with Venuity</p>
+              
+              <div className={styles.hostActions}>
+                <Link href="/host/venues" className={styles.primaryButton}>
+                  <FiPlus /> Add New Venue
+                </Link>
+                <Link href="/host/dashboard" className={styles.secondaryButton}>
+                  <FiBarChart2 /> View Dashboard
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Host Stats Section */}
+          <section className={`${styles.section} ${styles.bgLight}`}>
+            <div className={styles.container}>
+              <div className={styles.hostStatsGrid}>
+                {hostStats.map((stat) => (
+                  <motion.div 
+                    key={stat.id} 
+                    className={styles.statCard}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className={styles.statIcon}>
+                      {stat.icon}
+                    </div>
+                    <div className={styles.statContent}>
+                      <h3 className={styles.statValue}>{stat.value}</h3>
+                      <p className={styles.statLabel}>{stat.label}</p>
+                      <span className={styles.statChange}>{stat.change}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Host Features Section */}
+          <section className={styles.section}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Manage Your Business</h2>
+                <p className={styles.sectionSubtitle}>Everything you need to run your venue business successfully</p>
+              </div>
+              <div className={styles.hostFeaturesGrid}>
+                {hostFeatures.map((feature) => (
+                  <Link href={feature.link} key={feature.id}>
+                    <motion.div 
+                      className={styles.featureCard}
+                      whileHover={{ y: -5 }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div 
+                        className={styles.featureIcon} 
+                        style={{ backgroundColor: `${feature.color}15`, color: feature.color }}
+                      >
+                        {feature.icon}
+                      </div>
+                      <h3 className={styles.featureTitle}>{feature.title}</h3>
+                      <p className={styles.featureDescription}>{feature.description}</p>
+                      <div className={styles.featureLink}>
+                        Learn More <FiArrowRight className={styles.arrowIcon} />
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Host Testimonials Section */}
+          <section className={`${styles.section} ${styles.bgLight}`}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Success Stories</h2>
+                <p className={styles.sectionSubtitle}>See how other hosts are growing their business with Venuity</p>
+              </div>
+              <div className={styles.testimonialsGrid}>
+                {hostTestimonials.map((testimonial) => (
+                  <motion.div 
+                    key={testimonial.id} 
+                    className={styles.testimonialCard}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className={styles.testimonialContent}>
+                      <div className={styles.quoteIcon}>"</div>
+                      <p className={styles.testimonialText}>{testimonial.content}</p>
+                      <div className={styles.rating}>
+                        {[...Array(5)].map((_, i) => (
+                          i < testimonial.rating ? 
+                            <FaStar key={i} className={styles.starFilled} /> : 
+                            <FaRegStar key={i} className={styles.starEmpty} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className={styles.testimonialAuthor}>
+                      <div className={styles.authorInfo}>
+                        <h4>{testimonial.name}</h4>
+                        <p>{testimonial.business}</p>
+                        <span className={styles.revenue}>{testimonial.revenue}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Host CTA Section */}
+          <section className={styles.ctaBanner}>
+            <div className={styles.container}>
+              <div className={styles.ctaContent}>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  <h2>Ready to Grow Your Business?</h2>
+                  <p>Access advanced features and analytics to maximize your venue's potential</p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  <Link href="/host/dashboard" className={styles.ctaButton}>
+                    Go to Dashboard <FiArrowRight className={styles.ctaIcon} />
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
