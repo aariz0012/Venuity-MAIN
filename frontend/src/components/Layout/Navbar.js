@@ -61,12 +61,17 @@ const Navbar = () => {
               <Link href="/" className={navLinkClasses('/')}>
                 Home
               </Link>
-              <Link href="/venues" className={navLinkClasses('/venues')}>
-                Venues
-              </Link>
-              <Link href="/services" className={navLinkClasses('/services')}>
-                Services
-              </Link>
+              {/* Hide Venues and Services from logged-in hosts */}
+              {!host && (
+                <>
+                  <Link href="/venues" className={navLinkClasses('/venues')}>
+                    Venues
+                  </Link>
+                  <Link href="/services" className={navLinkClasses('/services')}>
+                    Services
+                  </Link>
+                </>
+              )}
               <div 
                 className="relative flex items-center"
                 onMouseEnter={() => setIsAboutMenuOpen(true)}
@@ -117,7 +122,7 @@ const Navbar = () => {
                     </div>
                     <div className="border-t border-gray-100"></div>
                     <Link
-                      href={user ? "/dashboard" : "/host/dashboard"}
+                      href={host ? "/host/dashboard" : "/dashboard"}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsProfileOpen(false)}
                     >
@@ -185,16 +190,21 @@ const Navbar = () => {
               className={`${router.pathname === '/' ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
               Home
             </Link>
-            <Link
-              href="/venues"
-              className={`${router.pathname.startsWith('/venues') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
-              Venues
-            </Link>
-            <Link
-              href="/services"
-              className={`${router.pathname.startsWith('/services') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
-              Services
-            </Link>
+            {/* Hide Venues and Services from logged-in hosts */}
+            {!host && (
+              <>
+                <Link
+                  href="/venues"
+                  className={`${router.pathname.startsWith('/venues') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+                  Venues
+                </Link>
+                <Link
+                  href="/services"
+                  className={`${router.pathname.startsWith('/services') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+                  Services
+                </Link>
+              </>
+            )}
             <Link
               href="/about"
               className={`${router.pathname === '/about' ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
