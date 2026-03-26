@@ -1,8 +1,8 @@
-# EventO Platform
+# Venuity Platform
 
 A global, responsive web platform for booking venues (lawns, banquets, cafes, etc.) and event service providers (caterers, decorators, organizers) for weddings, birthdays, galas, engagements, and more.
 
-![EventO Platform](https://via.placeholder.com/800x400?text=EventO+Platform)
+![Venuity Platform](https://via.placeholder.com/800x400?text=EventO+Platform)
 
 ## 🌟 Features
 
