@@ -5,7 +5,7 @@ import Layout from '../components/Layout/Layout';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaTimes, FaPlus, FaCheck, FaShoppingCart } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 // Static export - no server-side rendering needed
@@ -17,13 +17,33 @@ const VenuesPage = () => {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [itinerary, setItinerary] = useState([]);
+  const [showItinerary, setShowItinerary] = useState(false);
   const [showMyVenues, setShowMyVenues] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(),
     endDate: new Date(new Date().setDate(new Date().getDate() + 1)), 
-  });
+  }, []);
+
+  useEffect(() => {
+    // Load itinerary from localStorage on component mount
+    const savedItinerary = localStorage.getItem('venueItinerary');
+    if (savedItinerary) {
+      try {
+        setItinerary(JSON.parse(savedItinerary));
+      } catch (err) {
+        console.error('Error loading itinerary:', err);
+        localStorage.removeItem('venueItinerary');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save itinerary to localStorage whenever it changes
+    localStorage.setItem('venueItinerary', JSON.stringify(itinerary));
+  }, [itinerary]);
 
   useEffect(() => {
     // Check if user is authenticated and get user role
@@ -116,6 +136,26 @@ const VenuesPage = () => {
   const handleClearCategory = () => {
     setSelectedCategory('');
     router.push('/venues', undefined, { shallow: true });
+  };
+
+  // Itinerary functions
+  const addToItinerary = (venue) => {
+    const exists = itinerary.find(item => item._id === venue._id);
+    if (!exists) {
+      setItinerary([...itinerary, venue]);
+    }
+  };
+
+  const removeFromItinerary = (venueId) => {
+    setItinerary(itinerary.filter(item => item._id !== venueId));
+  };
+
+  const clearItinerary = () => {
+    setItinerary([]);
+  };
+
+  const isInItinerary = (venueId) => {
+    return itinerary.some(item => item._id === venueId);
   };
 
   const handleToggleStatus = async (venueId, currentStatus) => {
@@ -238,6 +278,86 @@ const VenuesPage = () => {
                   : 'Your ideal event space awaits. Browse and discover the perfect venue for your next occasion.'}
               </p>
               
+              {/* Itinerary Summary */}
+              {itinerary.length > 0 && (
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FaShoppingCart className="mr-2" />
+                      <span className="font-semibold">
+                        {itinerary.length} venue{itinerary.length !== 1 ? 's' : ''} in itinerary
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowItinerary(!showItinerary)}
+                        className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        {showItinerary ? 'Hide' : 'View'}
+                      </button>
+                      <button
+                        onClick={clearItinerary}
+                        className="bg-red-500/20 hover:bg-red-500/30 px-3 py-1 rounded text-sm transition-colors"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Detailed Itinerary View */}
+              {showItinerary && itinerary.length > 0 && (
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                  <h3 className="text-xl font-semibold mb-4">Your Itinerary</h3>
+                  <div className="space-y-3">
+                    {itinerary.map((venue) => (
+                      <div key={venue._id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{venue.businessName || 'Unnamed Venue'}</h4>
+                          <p className="text-sm text-gray-600">
+                            {venue.city || 'Location not specified'}
+                            {venue.state ? `, ${venue.state}` : ''}
+                          </p>
+                          <p className="text-sm font-semibold text-blue-600">
+                            ${(venue.pricing?.basePrice || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}/day
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeFromItinerary(venue._id)}
+                          className="text-red-500 hover:text-red-700 p-2"
+                          title="Remove from itinerary"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-gray-600">Total Venues</p>
+                        <p className="text-xl font-bold">{itinerary.length}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => router.push('/booking?itinerary=true')}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+                        >
+                          Proceed to Booking
+                        </button>
+                        <button
+                          onClick={clearItinerary}
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Host Controls */}
               {isHost && (
                 <div className="flex justify-center mb-6">
@@ -495,12 +615,31 @@ const VenuesPage = () => {
                             👥 {venue.maxGuestCapacity || 'N/A'} guests
                           </span>
                         </div>
-                        <Link
-                          href={`/venues/${venue._id}`}
-                          className="w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 block"
-                        >
-                          View Details
-                        </Link>
+                        <div className="flex gap-2">
+                          {isInItinerary(venue._id) ? (
+                            <button
+                              onClick={() => removeFromItinerary(venue._id)}
+                              className="flex-1 bg-green-100 text-green-700 hover:bg-green-200 font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center"
+                            >
+                              <FaCheck className="mr-2" />
+                              In Itinerary
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => addToItinerary(venue)}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center"
+                            >
+                              <FaPlus className="mr-2" />
+                              Add to Itinerary
+                            </button>
+                          )}
+                          <Link
+                            href={`/venues/${venue._id}`}
+                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 block text-center"
+                          >
+                            View Details
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
