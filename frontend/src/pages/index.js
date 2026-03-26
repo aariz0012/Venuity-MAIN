@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 import { 
   FiMapPin, 
@@ -318,27 +319,29 @@ export default function Home() {
     </div>
     <div className={styles.categoriesGrid}>
       {categories.map((category) => (
-        <motion.div 
-          key={category.id} 
-          className={styles.categoryCard}
-          whileHover={{ y: -5 }}
-        >
-          <div className={styles.categoryImage}>
-            <Image 
-              src={category.image} 
-              alt={category.name} 
-              width={300} 
-              height={200}
-              className={styles.categoryImg}
-              onError={(e) => {
-                console.error('Failed to load image: ${category.image}');
-                e.target.onerror = null;
-                e.target.src = '/images/events/default.jpg';
-              }}
-            />
-          </div>
-          <h3>{category.name}</h3>
-        </motion.div>
+        <Link href={`/venues?category=${category.name.toLowerCase()}`} key={category.id}>
+          <motion.div 
+            className={styles.categoryCard}
+            whileHover={{ y: -5 }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className={styles.categoryImage}>
+              <Image 
+                src={category.image} 
+                alt={category.name} 
+                width={300} 
+                height={200}
+                className={styles.categoryImg}
+                onError={(e) => {
+                  console.error('Failed to load image: ${category.image}');
+                  e.target.onerror = null;
+                  e.target.src = '/images/events/default.jpg';
+                }}
+              />
+            </div>
+            <h3>{category.name}</h3>
+          </motion.div>
+        </Link>
       ))}
     </div>
   </div>
