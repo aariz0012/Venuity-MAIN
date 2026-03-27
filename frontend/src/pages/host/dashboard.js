@@ -20,6 +20,8 @@ const HostDashboard = () => {
     customerRating: 0
   });
   const [recentBookings, setRecentBookings] = useState([]);
+  const [venues, setVenues] = useState([]);
+  const [showVenuesDialog, setShowVenuesDialog] = useState(false);
   
   // Settings states
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
@@ -257,6 +259,17 @@ const HostDashboard = () => {
     setShow2FAConfirmationDialog(false);
   };
 
+  const handleOpenVenues = () => {
+    setShowVenuesDialog(true);
+    // TODO: Fetch venues from backend
+    // For now, keep venues array empty (no sample venues)
+    setVenues([]);
+  };
+
+  const handleCloseVenues = () => {
+    setShowVenuesDialog(false);
+  };
+
   if (loading) {
     return (
       <Layout title="Loading...">
@@ -289,16 +302,7 @@ const HostDashboard = () => {
               Manage your venues and track your performance.
             </p>
           </div>
-          <div className="mt-4 flex items-center md:mt-0 md:ml-4 space-x-3">
-            <button
-              onClick={() => router.push('/host/venues/new')}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              <FiPlus className="-ml-1 mr-2 h-5 w-5" />
-              Add New Venue
-            </button>
-          </div>
-        </div>
+                  </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -495,7 +499,7 @@ const HostDashboard = () => {
               <div className="p-6">
                 <div className="space-y-4">
                   <button
-                    onClick={() => router.push('/host/venues')}
+                    onClick={handleOpenVenues}
                     className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex items-center">
@@ -1492,6 +1496,105 @@ const HostDashboard = () => {
                   Enable 2FA
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Venues Dialog */}
+        {showVenuesDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div 
+              className="bg-white rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                      <FiHome className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">My Venues</h2>
+                      <p className="text-sm text-gray-600">Manage your venue listings</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCloseVenues}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FiX className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {venues.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FiHome className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Venues</h3>
+                    <p className="text-gray-600">You haven't uploaded any venues yet. Start by adding your first venue to begin managing bookings.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {venues.map((venue) => (
+                      <motion.div
+                        key={venue.id}
+                        className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="aspect-w-16 aspect-h-12 bg-gray-200 relative">
+                          <img 
+                            src={venue.image} 
+                            alt={venue.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 right-2">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              venue.status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {venue.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <h3 className="font-semibold text-gray-900 mb-2">{venue.name}</h3>
+                          <p className="text-sm text-gray-600 mb-3">{venue.type}</p>
+                          
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <FiUsers className="w-4 h-4 mr-2" />
+                              <span>Capacity: {venue.capacity} guests</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <FiDollarSign className="w-4 h-4 mr-2" />
+                              <span>{venue.price}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <FiCalendar className="w-4 h-4 mr-2" />
+                              <span>{venue.bookings} bookings this month</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <button className="flex-1 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors">
+                              Edit
+                            </button>
+                            <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
+                              View Details
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}               </div>
             </motion.div>
           </div>
         )}
