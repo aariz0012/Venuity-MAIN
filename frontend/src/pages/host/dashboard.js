@@ -25,6 +25,7 @@ const HostDashboard = () => {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('profile');
   const [activeSubCategory, setActiveSubCategory] = useState('basic');
+  const [show2FAConfirmationDialog, setShow2FAConfirmationDialog] = useState(false);
   const [settings, setSettings] = useState({
     // Venue Profile & Identity
     businessName: '',
@@ -231,6 +232,29 @@ const HostDashboard = () => {
     // Save settings to backend
     console.log('Saving settings:', settings);
     setShowSettingsDialog(false);
+  };
+
+  const handle2FAChange = (enabled) => {
+    if (enabled) {
+      // Show confirmation dialog when enabling 2FA
+      setShow2FAConfirmationDialog(true);
+    } else {
+      // Directly disable 2FA
+      handleSettingsChange('security', 'twoFactorEnabled', false);
+    }
+  };
+
+  const confirm2FAEnable = () => {
+    // Enable 2FA after confirmation
+    handleSettingsChange('security', 'twoFactorEnabled', true);
+    setShow2FAConfirmationDialog(false);
+    console.log('2FA enabled - 6-digit code will be sent to registered WhatsApp');
+    // TODO: Implement WhatsApp 2FA service
+  };
+
+  const cancel2FAEnable = () => {
+    // Keep 2FA disabled if user cancels
+    setShow2FAConfirmationDialog(false);
   };
 
   if (loading) {
@@ -1300,7 +1324,7 @@ const HostDashboard = () => {
                               <input
                                 type="checkbox"
                                 checked={settings.twoFactorEnabled}
-                                onChange={(e) => handleSettingsChange('security', 'twoFactorEnabled', e.target.checked)}
+                                onChange={(e) => handle2FAChange(e.target.checked)}
                                 className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
                               />
                               <span className="text-sm font-medium text-gray-700">Enable 2FA</span>
@@ -1420,6 +1444,52 @@ const HostDashboard = () => {
                   className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
                   Save Settings
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 2FA Confirmation Dialog */}
+        {show2FAConfirmationDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div 
+              className="bg-white rounded-xl p-6 w-full max-w-md mx-4"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                  <FiShield className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Enable Two-Factor Authentication</h3>
+                  <p className="text-sm text-gray-600 mt-1">Secure your account with WhatsApp verification</p>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <p className="text-sm text-gray-700">
+                  Receive a 6-digit secure code directly on your registered WhatsApp number.
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  After enabling 2FA, you'll need to enter this code every time you log in.
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancel2FAEnable}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirm2FAEnable}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Enable 2FA
                 </button>
               </div>
             </motion.div>
