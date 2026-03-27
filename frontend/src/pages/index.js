@@ -4,27 +4,40 @@ import Image from 'next/image';
 import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 import { 
-  FiMapPin, 
+  FiSearch, 
   FiCalendar, 
   FiUsers, 
-  FiSearch, 
-  FiNavigation,
-  FiChevronRight, 
+  FiMapPin, 
+  FiStar, 
   FiCheckCircle, 
-  FiLayers, 
-  FiTag, 
-  FiHeadphones, 
-  FiMail, 
-  FiPhone, 
-  FiClock, 
   FiArrowRight,
-  FiTrendingUp,
-  FiDollarSign,
+  FiMail,
+  FiPhone,
   FiHome,
+  FiShield,
+  FiDollarSign,
+  FiClock,
+  FiHeadphones,
+  FiGlobe,
+  FiAward,
+  FiTrendingUp,
+  FiLayers,
+  FiTarget,
+  FiZap,
+  FiHeart,
   FiPlus,
-  FiEdit,
   FiBarChart2,
-  FiCheckSquare
+  FiSettings,
+  FiCalendar as FiCalendarIcon,
+  FiUser,
+  FiImage,
+  FiX,
+  FiEdit,
+  FiEye,
+  FiNavigation,
+  FiChevronRight,
+  FiTag,
+  FiPlay
 } from 'react-icons/fi';
 import { 
   FaStar, 
@@ -268,6 +281,21 @@ export default function Home() {
   const [guests, setGuests] = useState('');
   const [email, setEmail] = useState('');
   const [isLocating, setIsLocating] = useState(false);
+  
+  // Host venue management states
+  const [showVenueDialog, setShowVenueDialog] = useState(false);
+  const [hostVenues, setHostVenues] = useState([]);
+  const [loadingVenues, setLoadingVenues] = useState(true);
+  const [editingVenue, setEditingVenue] = useState(null);
+  const [newVenue, setNewVenue] = useState({
+    name: '',
+    location: '',
+    capacity: '',
+    pricePerHour: '',
+    description: '',
+    amenities: [],
+    images: []
+  });
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -278,6 +306,119 @@ export default function Home() {
     e.preventDefault();
     // Handle subscription
     setEmail('');
+  };
+
+  // Venue management functions
+  const handleAddVenue = () => {
+    setShowVenueDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setShowVenueDialog(false);
+    setEditingVenue(null);
+    setNewVenue({
+      name: '',
+      location: '',
+      capacity: '',
+      pricePerHour: '',
+      description: '',
+      amenities: [],
+      images: []
+    });
+  };
+
+  const handleVenueSubmit = (e) => {
+    e.preventDefault();
+    
+    if (editingVenue) {
+      // Update existing venue
+      setHostVenues(prev => 
+        prev.map(venue => 
+          venue.id === editingVenue.id 
+            ? { 
+                ...newVenue, 
+                id: editingVenue.id,
+                status: editingVenue.status,
+                createdAt: editingVenue.createdAt,
+                updatedAt: new Date().toISOString()
+              }
+            : venue
+        )
+      );
+    } else {
+      // Add new venue
+      const venueToAdd = {
+        ...newVenue,
+        id: Date.now(),
+        status: 'draft', // Initially in draft status
+        createdAt: new Date().toISOString()
+      };
+      setHostVenues([...hostVenues, venueToAdd]);
+    }
+    
+    handleCloseDialog();
+  };
+
+  const handleVenueInputChange = (field, value) => {
+    setNewVenue(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleAmenityToggle = (amenity) => {
+    setNewVenue(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  };
+
+  const handleEditVenue = (venue) => {
+    setEditingVenue(venue);
+    setNewVenue({
+      name: venue.name,
+      location: venue.location,
+      capacity: venue.capacity,
+      pricePerHour: venue.pricePerHour,
+      description: venue.description,
+      amenities: venue.amenities,
+      images: venue.images
+    });
+    setShowVenueDialog(true);
+  };
+
+  const handleTerminateVenue = (venueId) => {
+    if (window.confirm('Are you sure you want to terminate this venue? It will no longer be visible to customers but you can continue anytime by publishing again.')) {
+      setHostVenues(prev => 
+        prev.map(venue => 
+          venue.id === venueId 
+            ? { ...venue, status: 'terminated', terminatedAt: new Date().toISOString() }
+            : venue
+        )
+      );
+    }
+  };
+
+  const handleContinueVenue = (venueId) => {
+    setHostVenues(prev => 
+      prev.map(venue => 
+        venue.id === venueId 
+          ? { ...venue, status: 'draft', terminatedAt: null }
+          : venue
+      )
+    );
+  };
+
+  const handlePublishVenue = (venueId) => {
+    setHostVenues(prev => 
+      prev.map(venue => 
+        venue.id === venueId 
+          ? { ...venue, status: 'published', publishedAt: new Date().toISOString() }
+          : venue
+      )
+    );
   };
 
   const detectLocation = () => {
@@ -339,9 +480,9 @@ export default function Home() {
               <p>Manage your venues and grow your event business with Venuity</p>
               
               <div className={styles.hostActions}>
-                <Link href="/host/venues" className={styles.primaryButton}>
+                <button onClick={handleAddVenue} className={styles.primaryButton}>
                   <FiPlus /> Add New Venue
-                </Link>
+                </button>
                 <Link href="/host/dashboard" className={styles.secondaryButton}>
                   <FiBarChart2 /> View Dashboard
                 </Link>
@@ -373,6 +514,168 @@ export default function Home() {
                   </motion.div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          {/* Host Venues Section */}
+          <section className={styles.section}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Your Venues</h2>
+                <p className={styles.sectionSubtitle}>Manage your venue listings and make them visible to customers</p>
+              </div>
+              
+              {hostVenues.length === 0 ? (
+                <div className={`${styles.noVenues} text-center py-12`}>
+                  <div className="text-gray-400 mb-4">
+                    <FiHome size={48} />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No venues yet</h3>
+                  <p className="text-gray-500 mb-6">Start by adding your first venue to attract customers</p>
+                  <button onClick={handleAddVenue} className={styles.primaryButton}>
+                    <FiPlus /> Add Your First Venue
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.venuesGrid}>
+                  {hostVenues.map((venue) => (
+                    <motion.div 
+                      key={venue.id} 
+                      className={`${styles.venueCard} ${
+                        venue.status === 'draft' ? 'border-yellow-400 bg-yellow-50' : 
+                        venue.status === 'terminated' ? 'border-red-400 bg-red-50 opacity-75' : 
+                        venue.status === 'published' ? 'border-green-400 bg-green-50' : 
+                        'border-gray-200'
+                      }`}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                      viewport={{ once: true }}
+                    >
+                      <div className={styles.venueImage}>
+                        {venue.images && venue.images.length > 0 ? (
+                          <Image 
+                            src={venue.images[0]} 
+                            alt={venue.name} 
+                            width={300} 
+                            height={200}
+                            className={styles.venueImg}
+                          />
+                        ) : (
+                          <div className="bg-gray-200 h-48 flex items-center justify-center">
+                            <FiImage size={48} className="text-gray-400" />
+                          </div>
+                        )}
+                        {/* Status Badge */}
+                        {venue.status === 'draft' && (
+                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-semibold">
+                            Draft
+                          </div>
+                        )}
+                        {venue.status === 'published' && (
+                          <div className="absolute top-2 right-2 bg-green-400 text-green-900 px-2 py-1 rounded text-xs font-semibold">
+                            Published
+                          </div>
+                        )}
+                        {venue.status === 'terminated' && (
+                          <div className="absolute top-2 right-2 bg-red-400 text-red-900 px-2 py-1 rounded text-xs font-semibold">
+                            Terminated
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.venueContent}>
+                        <h3 className={styles.venueName}>{venue.name}</h3>
+                        <p className={styles.venueLocation}>
+                          <FiMapPin className="inline mr-1" />
+                          {venue.location}
+                        </p>
+                        <div className={styles.venueDetails}>
+                          <span className={styles.venueCapacity}>
+                            <FiUsers className="inline mr-1" />
+                            {venue.capacity} guests
+                          </span>
+                          <span className={styles.venuePrice}>
+                            <FiDollarSign className="inline mr-1" />
+                            {venue.pricePerHour}/hour
+                          </span>
+                        </div>
+                        <div className={styles.venueAmenities}>
+                          {venue.amenities.slice(0, 3).map((amenity, index) => (
+                            <span key={index} className={styles.amenityTag}>
+                              {amenity}
+                            </span>
+                          ))}
+                          {venue.amenities.length > 3 && (
+                            <span className={styles.amenityTag}>
+                              +{venue.amenities.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                        <div className={styles.venueActions}>
+                          {venue.status === 'draft' && (
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => handlePublishVenue(venue.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiCheckCircle className="inline mr-1" />
+                                Publish Venue
+                              </button>
+                              <button 
+                                onClick={() => handleEditVenue(venue)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiEdit className="inline mr-1" />
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                          {venue.status === 'published' && (
+                            <div className="flex gap-2">
+                              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                <FiEye className="inline mr-1" />
+                                View
+                              </button>
+                              <button 
+                                onClick={() => handleEditVenue(venue)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiEdit className="inline mr-1" />
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => handleTerminateVenue(venue.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiX className="inline mr-1" />
+                                Terminate
+                              </button>
+                            </div>
+                          )}
+                          {venue.status === 'terminated' && (
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => handleContinueVenue(venue.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiPlay className="inline mr-1" />
+                                Continue
+                              </button>
+                              <button 
+                                onClick={() => handleEditVenue(venue)}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              >
+                                <FiEdit className="inline mr-1" />
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
@@ -476,6 +779,175 @@ export default function Home() {
               </div>
             </div>
           </section>
+        {/* Add Venue Dialog */}
+          {showVenueDialog && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <motion.div 
+                className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {editingVenue ? 'Edit Venue' : 'Add New Venue'}
+                  </h2>
+                  <button 
+                    onClick={handleCloseDialog}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FiX size={24} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleVenueSubmit} className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Venue Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newVenue.name}
+                        onChange={(e) => handleVenueInputChange('name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Grand Ballroom"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newVenue.location}
+                        onChange={(e) => handleVenueInputChange('location', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Mumbai, India"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Capacity *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={newVenue.capacity}
+                        onChange={(e) => handleVenueInputChange('capacity', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="300"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price per Hour *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={newVenue.pricePerHour}
+                        onChange={(e) => handleVenueInputChange('pricePerHour', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={newVenue.description}
+                      onChange={(e) => handleVenueInputChange('description', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows="4"
+                      placeholder="Describe your venue, its features, and what makes it special..."
+                    />
+                  </div>
+
+                  {/* Amenities */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amenities
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {[
+                        'WiFi', 'Parking', 'Catering', 'Sound System', 'Stage', 
+                        'Air Conditioning', 'Projector', 'Dance Floor', 'Bar', 
+                        'Restrooms', 'Outdoor Space', 'Kitchen'
+                      ].map((amenity) => (
+                        <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newVenue.amenities.includes(amenity)}
+                            onChange={() => handleAmenityToggle(amenity)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{amenity}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Images */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Venue Images
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <FiImage size={48} className="mx-auto text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-600 mb-2">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF up to 10MB
+                      </p>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        id="venue-images"
+                      />
+                      <label
+                        htmlFor="venue-images"
+                        className="mt-4 inline-block px-4 py-2 bg-gray-100 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
+                      >
+                        Select Images
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex justify-end space-x-4 pt-6 border-t">
+                    <button
+                      type="button"
+                      onClick={handleCloseDialog}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {editingVenue ? 'Update Venue' : 'Add Venue'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
         </main>
       </Layout>
     );
