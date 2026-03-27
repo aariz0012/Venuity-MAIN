@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { 
   FiHome, FiPlus, FiCalendar, FiDollarSign, FiUsers, FiSettings, FiBarChart2, FiTrendingUp, FiMapPin,
   FiUser, FiImage, FiCheckCircle, FiClock, FiZap, FiShield, FiMail, FiX, FiHeadphones, FiEye,
-  FiAlertCircle, FiCheckCircle as FiCheckCircleIcon, FiInfo
+  FiAlertCircle, FiCheckCircle as FiCheckCircleIcon, FiInfo, FiCheck
 } from 'react-icons/fi';
 
 const HostDashboard = () => {
@@ -22,6 +22,10 @@ const HostDashboard = () => {
   const [recentBookings, setRecentBookings] = useState([]);
   const [venues, setVenues] = useState([]);
   const [showVenuesDialog, setShowVenuesDialog] = useState(false);
+  const [showBookingsDialog, setShowBookingsDialog] = useState(false);
+  const [bookingsFilter, setBookingsFilter] = useState('last30days');
+  const [confirmedBookings, setConfirmedBookings] = useState([]);
+  const [upcomingBookings, setUpcomingBookings] = useState([]);
   
   // Settings states
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
@@ -98,40 +102,19 @@ const HostDashboard = () => {
 
   const fetchHostData = async () => {
     try {
-      // Mock data for now - replace with actual API calls
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Set initial stats to zero - will be updated with real-time data
       setStats({
-        totalVenues: 5,
-        activeBookings: 12,
-        monthlyRevenue: 45000,
-        customerRating: 4.8
+        totalVenues: 0,
+        activeBookings: 0,
+        monthlyRevenue: 0,
+        customerRating: 0
       });
 
-      setRecentBookings([
-        {
-          id: 1,
-          venue: 'Luxury Banquet Hall',
-          customer: 'John Doe',
-          date: '2024-03-25',
-          amount: 25000,
-          status: 'confirmed'
-        },
-        {
-          id: 2,
-          venue: 'Garden Paradise',
-          customer: 'Jane Smith',
-          date: '2024-03-28',
-          amount: 15000,
-          status: 'pending'
-        },
-        {
-          id: 3,
-          venue: 'Rooftop Lounge',
-          customer: 'Mike Johnson',
-          date: '2024-04-01',
-          amount: 35000,
-          status: 'confirmed'
-        }
-      ]);
+      // Keep recent bookings empty - will be populated by real-time bookings
+      setRecentBookings([]);
     } catch (error) {
       console.error('Error fetching host data:', error);
     }
@@ -270,6 +253,18 @@ const HostDashboard = () => {
     setShowVenuesDialog(false);
   };
 
+  const handleOpenBookings = () => {
+    setShowBookingsDialog(true);
+    // TODO: Fetch bookings from backend based on filter
+    // Keep arrays empty for real-time data
+    setConfirmedBookings([]);
+    setUpcomingBookings([]);
+  };
+
+  const handleCloseBookings = () => {
+    setShowBookingsDialog(false);
+  };
+
   if (loading) {
     return (
       <Layout title="Loading...">
@@ -310,11 +305,11 @@ const HostDashboard = () => {
             initial="hidden"
             animate="visible"
             variants={fadeIn}
-            className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+            className="bg-white border border-gray-100 rounded-xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-primary-500 rounded-md p-3">
+                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
                   <FiHome className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -336,11 +331,11 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+            className="bg-white border border-gray-100 rounded-xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
                   <FiCalendar className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -362,11 +357,11 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+            className="bg-white border border-gray-100 rounded-xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
                   <FiDollarSign className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -388,11 +383,11 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.3 }}
-            className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
+            className="bg-white border border-gray-100 rounded-xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
                   <FiUsers className="h-6 w-6 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -440,28 +435,19 @@ const HostDashboard = () => {
                               <FiCalendar className="h-8 w-8 text-primary-500" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                                {booking.venue}
-                              </h4>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Customer: {booking.customer}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Date: {booking.date}
-                              </p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{booking.customer}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{booking.venue}</p>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              ₹{booking.amount.toLocaleString()}
-                            </p>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              booking.status === 'confirmed' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {booking.status}
-                            </span>
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">₹{booking.amount.toLocaleString()}</p>
+                              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                booking.status === 'confirmed' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {booking.status}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -470,10 +456,10 @@ const HostDashboard = () => {
                     <div className="text-center py-8">
                       <FiCalendar className="mx-auto h-12 w-12 text-gray-400" />
                       <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                        No recent bookings
+                        Yet to Bookings! Have Patience...
                       </h3>
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Your recent bookings will appear here.
+                        Bookings will appear here when customers make reservations
                       </p>
                     </div>
                   )}
@@ -518,7 +504,7 @@ const HostDashboard = () => {
                   </button>
 
                   <button
-                    onClick={() => router.push('/host/bookings')}
+                    onClick={handleOpenBookings}
                     className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex items-center">
@@ -1595,6 +1581,121 @@ const HostDashboard = () => {
                     ))}
                   </div>
                 )}               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Bookings Dialog */}
+        {showBookingsDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <motion.div 
+              className="bg-white rounded-xl w-full max-w-5xl mx-4 max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                      <FiCalendar className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900">Bookings Management</h2>
+                      <p className="text-sm text-gray-600">View and manage your venue bookings</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCloseBookings}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <FiX className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Time Filter */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Time Period</label>
+                  <select
+                    value={bookingsFilter}
+                    onChange={(e) => setBookingsFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="last30days">Last 30 Days</option>
+                    <option value="last3months">Last 3 Months</option>
+                    <option value="lastyear">Last Year</option>
+                    <option value="all">All</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Confirmed Bookings */}
+                  <div className="bg-white border border-gray-100 rounded-xl p-4">
+                    <div className="flex items-center mb-4">
+                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center mr-3">
+                        <FiCheck className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Confirmed Bookings</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {confirmedBookings.length > 0 ? (
+                        confirmedBookings.map((booking) => (
+                          <div key={booking.id} className="bg-white p-3 rounded-lg border border-gray-100">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-gray-900">{booking.customer}</p>
+                                <p className="text-sm text-gray-600">{booking.venue}</p>
+                                <p className="text-xs text-gray-500">{booking.date} at {booking.time}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-gray-900">₹{booking.amount.toLocaleString()}</p>
+                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                                  Confirmed
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-gray-500 py-4">No confirmed bookings</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Upcoming Bookings */}
+                  <div className="bg-white border border-gray-100 rounded-xl p-4">
+                    <div className="flex items-center mb-4">
+                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center mr-3">
+                        <FiClock className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Upcoming Bookings</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {upcomingBookings.length > 0 ? (
+                        upcomingBookings.map((booking) => (
+                          <div key={booking.id} className="bg-white p-3 rounded-lg border border-gray-100">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-gray-900">{booking.customer}</p>
+                                <p className="text-sm text-gray-600">{booking.venue}</p>
+                                <p className="text-xs text-gray-500">{booking.date} at {booking.time}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-gray-900">₹{booking.amount.toLocaleString()}</p>
+                                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                                  Pending
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-gray-500 py-4">No upcoming bookings</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
