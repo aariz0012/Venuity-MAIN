@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { 
   FiHome, FiPlus, FiCalendar, FiDollarSign, FiUsers, FiSettings, FiBarChart2, FiTrendingUp, FiMapPin,
   FiUser, FiImage, FiCheckCircle, FiClock, FiZap, FiShield, FiMail, FiX, FiHeadphones, FiEye,
-  FiAlertCircle, FiCheckCircle as FiCheckCircleIcon
+  FiAlertCircle, FiCheckCircle as FiCheckCircleIcon, FiInfo
 } from 'react-icons/fi';
 
 const HostDashboard = () => {
@@ -897,6 +897,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
                           Payout Methods
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Connect your bank account to receive automated settlements after successful events</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <select
@@ -927,6 +934,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
                           GST Configuration
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Toggle this to include GST on customer invoices. Required for businesses with ₹20L+ turnover</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-green-200">
@@ -969,6 +983,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">3</span>
                           Cancellation Policy
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Choose how you want to handle refunds. Strict policies help prevent revenue leakage for high-demand dates</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <select
@@ -1009,6 +1030,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
                           AI Summary Frequency
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Set the delivery schedule for automated insights and audit reports to your dashboard</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <select
@@ -1037,6 +1065,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
                           Auto-Responder
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">    
+                              <div className="text-gray-300">Enable automated 24/7 responses for guest questions to reduce administrative friction</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-cyan-200">
@@ -1068,6 +1103,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">3</span>
                           AI Credits Management
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">                             
+                              <div className="text-gray-300">Track your available credits and monthly usage for AI-powered summaries and site intelligence tools</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-orange-200">
@@ -1119,6 +1161,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
                           Activity History
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">                       
+                              <div className="text-gray-300">Track every modification made to your profile and venues with a detailed, time-stamped audit trail</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white rounded-lg p-4 border border-red-200 max-h-48 overflow-y-auto">
@@ -1155,6 +1204,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
                           Staff Access
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">                            
+                              <div className="text-gray-300">Securely add managers or staff to help handle bookings without sharing your primary owner credentials</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white rounded-lg p-4 border border-blue-200">
@@ -1195,6 +1251,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">3</span>
                           Two-Factor Authentication
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">                             
+                              <div className="text-gray-300">Secure your business revenue and sensitive data by enabling mandatory two-step verification for all logins</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-green-200">
@@ -1238,6 +1301,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">1</span>
                           Booking Alerts
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Get real-time updates on new bookings and guest schedule changes to stay on top of your calendar</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-blue-200">
@@ -1269,6 +1339,13 @@ const HostDashboard = () => {
                         <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                           <span className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm mr-3">2</span>
                           Low-Credit Alerts
+                          <div className="relative group ml-2">
+                            <FiInfo className="w-4 h-4 text-gray-400 cursor-help" />
+                            <div className="absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-lg">
+                              <div className="text-gray-300">Receive a reminder to top up your account before your AI-powered administrative tools are paused</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                            </div>
+                          </div>
                         </h4>
                         <div className="space-y-4">
                           <div className="bg-white p-4 rounded-lg border border-orange-200">
