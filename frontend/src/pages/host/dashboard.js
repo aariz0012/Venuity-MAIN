@@ -144,12 +144,47 @@ const HostDashboard = () => {
   };
 
   const handleSettingsChange = (category, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: category === 'amenities' 
-        ? { ...prev[category], [field]: value }
-        : { ...prev, [field]: value }
-    }));
+    setSettings(prev => {
+      if (category === 'amenities') {
+        return {
+          ...prev,
+          amenities: {
+            ...prev.amenities,
+            [field]: value
+          }
+        };
+      } else if (category === 'profile') {
+        return {
+          ...prev,
+          [field]: value
+        };
+      } else if (category === 'financial') {
+        return {
+          ...prev,
+          [field]: value
+        };
+      } else if (category === 'ai') {
+        return {
+          ...prev,
+          [field]: value
+        };
+      } else if (category === 'security') {
+        return {
+          ...prev,
+          [field]: value
+        };
+      } else if (category === 'notifications') {
+        return {
+          ...prev,
+          [field]: value
+        };
+      } else {
+        return {
+          ...prev,
+          [field]: value
+        };
+      }
+    });
   };
 
   const handleAmenityToggleSettings = (amenity) => {
@@ -676,7 +711,7 @@ const HostDashboard = () => {
                               value={settings.contactPhone}
                               onChange={(e) => handleSettingsChange('profile', 'contactPhone', e.target.value)}
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm"
-                              placeholder="+91 98765 43210"
+                              placeholder="+91 xxxxxxxxxx"
                             />
                           </div>
                           <div className="group">
