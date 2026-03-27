@@ -37,7 +37,8 @@ import {
   FiNavigation,
   FiChevronRight,
   FiTag,
-  FiPlay
+  FiPlay,
+  FiAlertCircle
 } from 'react-icons/fi';
 import { 
   FaStar, 
