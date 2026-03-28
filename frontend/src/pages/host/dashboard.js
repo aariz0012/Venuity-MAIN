@@ -102,12 +102,24 @@ const HostDashboard = () => {
 
   const fetchHostData = async () => {
     try {
-      // Simulate API call - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Load venues from localStorage first
+      const savedVenues = localStorage.getItem('hostVenues');
+      let venueCount = 0;
+      let venueData = [];
       
-      // Set initial stats to zero - will be updated with real-time data
+      if (savedVenues) {
+        try {
+          venueData = JSON.parse(savedVenues);
+          venueCount = venueData.length;
+          setVenues(venueData);
+        } catch (error) {
+          console.error('Error parsing venues from localStorage:', error);
+        }
+      }
+      
+      // Update stats with actual venue count
       setStats({
-        totalVenues: 0,
+        totalVenues: venueCount,
         activeBookings: 0,
         monthlyRevenue: 0,
         customerRating: 0
