@@ -38,7 +38,8 @@ import {
   FiChevronRight,
   FiTag,
   FiPlay,
-  FiAlertCircle
+  FiAlertCircle,
+  FiInfo
 } from 'react-icons/fi';
 import { 
   FaStar, 
@@ -241,12 +242,6 @@ const hostFeatures = [
   }
 ];
 
-const hostStats = [
-  { id: 1, label: 'Total Venues', value: '12', icon: <FiHome />, change: '+2 this month' },
-  { id: 2, label: 'Active Bookings', value: '28', icon: <FiCalendar />, change: '+8 this week' },
-  { id: 3, label: 'Monthly Revenue', value: '₹2.4L', icon: <FiDollarSign />, change: '+15% vs last month' },
-  { id: 4, label: 'Customer Rating', value: '4.8', icon: <FiTrendingUp />, change: '+0.2 this month' }
-];
 
 const hostTestimonials = [
   {
@@ -288,13 +283,57 @@ export default function Home() {
   const [hostVenues, setHostVenues] = useState([]);
   const [loadingVenues, setLoadingVenues] = useState(true);
   const [editingVenue, setEditingVenue] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [tooltip, setTooltip] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   const [newVenue, setNewVenue] = useState({
     name: '',
     location: '',
     capacity: '',
-    pricePerHour: '',
     description: '',
     amenities: [],
+    spaceTypes: [],
+    foodAndCatering: {
+      foodMenu: {
+        veg: false,
+        nonVeg: false
+      },
+      cateringPolicy: {
+        inHouseCatering: false,
+        outsideCateringAllowed: false,
+        cateringMandatory: false,
+        barService: false
+      }
+    },
+    decoration: {
+      decorType: {
+        standard: false,
+        themeBased: false,
+        premiumFloral: false
+      },
+      decorPolicy: {
+        outsideDecoratorAllowed: false
+      }
+    },
+    pricingModel: {
+      rateType: {
+        perPlate: false,
+        perDay: false
+      },
+      prices: {
+        vegPlatePrice: '',
+        nonVegPlatePrice: '',
+        perDayPrice: '',
+        vegPlateMin: '',
+        vegPlateMax: '',
+        nonVegPlateMin: '',
+        nonVegPlateMax: ''
+      }
+    },
+    mediaAndTrust: {
+      highResPhotos: [],
+      gstLicense: []
+    },
     images: []
   });
 
@@ -312,18 +351,69 @@ export default function Home() {
   // Venue management functions
   const handleAddVenue = () => {
     setShowVenueDialog(true);
+    setCurrentStep(1);
+  };
+
+  const handleNextStep = () => {
+    setCurrentStep(prev => prev + 1);
+  };
+
+  const handlePrevStep = () => {
+    setCurrentStep(prev => prev - 1);
   };
 
   const handleCloseDialog = () => {
     setShowVenueDialog(false);
     setEditingVenue(null);
+    setCurrentStep(1);
     setNewVenue({
       name: '',
       location: '',
       capacity: '',
-      pricePerHour: '',
       description: '',
       amenities: [],
+      spaceTypes: [],
+      foodAndCatering: {
+        foodMenu: {
+          veg: false,
+          nonVeg: false
+        },
+        cateringPolicy: {
+          inHouseCatering: false,
+          outsideCateringAllowed: false,
+          cateringMandatory: false,
+          barService: false
+        }
+      },
+      decoration: {
+        decorType: {
+          standard: false,
+          themeBased: false,
+          premiumFloral: false
+        },
+        decorPolicy: {
+          outsideDecoratorAllowed: false
+        }
+      },
+      pricingModel: {
+        rateType: {
+          perPlate: false,
+          perDay: false
+        },
+        prices: {
+          vegPlatePrice: '',
+          nonVegPlatePrice: '',
+          perDayPrice: '',
+          vegPlateMin: '',
+          vegPlateMax: '',
+          nonVegPlateMin: '',
+          nonVegPlateMax: ''
+        }
+      },
+      mediaAndTrust: {
+        highResPhotos: [],
+        gstLicense: []
+      },
       images: []
     });
   };
@@ -346,18 +436,23 @@ export default function Home() {
             : venue
         )
       );
+      handleCloseDialog();
     } else {
-      // Add new venue
-      const venueToAdd = {
-        ...newVenue,
-        id: Date.now(),
-        status: 'draft', // Initially in draft status
-        createdAt: new Date().toISOString()
-      };
-      setHostVenues([...hostVenues, venueToAdd]);
+      // Handle multi-step form submission
+      if (currentStep < 5) {
+        handleNextStep();
+      } else {
+        // Final submission - add new venue
+        const venueToAdd = {
+          ...newVenue,
+          id: Date.now(),
+          status: 'draft', // Initially in draft status
+          createdAt: new Date().toISOString()
+        };
+        setHostVenues([...hostVenues, venueToAdd]);
+        handleCloseDialog();
+      }
     }
-    
-    handleCloseDialog();
   };
 
   const handleVenueInputChange = (field, value) => {
@@ -376,15 +471,123 @@ export default function Home() {
     }));
   };
 
+  const handleSpaceTypeToggle = (spaceType) => {
+    setNewVenue(prev => ({
+      ...prev,
+      spaceTypes: prev.spaceTypes && prev.spaceTypes.includes(spaceType)
+        ? prev.spaceTypes.filter(s => s !== spaceType)
+        : [...(prev.spaceTypes || []), spaceType]
+    }));
+  };
+
+  const handleFoodMenuToggle = (menuItem) => {
+    setNewVenue(prev => ({
+      ...prev,
+      foodAndCatering: {
+        ...prev.foodAndCatering,
+        foodMenu: {
+          ...prev.foodAndCatering.foodMenu,
+          [menuItem]: !prev.foodAndCatering.foodMenu[menuItem]
+        }
+      }
+    }));
+  };
+
+  const handleCateringPolicyToggle = (policy) => {
+    setNewVenue(prev => ({
+      ...prev,
+      foodAndCatering: {
+        ...prev.foodAndCatering,
+        cateringPolicy: {
+          ...prev.foodAndCatering.cateringPolicy,
+          [policy]: !prev.foodAndCatering.cateringPolicy[policy]
+        }
+      }
+    }));
+  };
+
+  const handleDecorTypeToggle = (decorType) => {
+    setNewVenue(prev => ({
+      ...prev,
+      decoration: {
+        ...prev.decoration,
+        decorType: {
+          ...prev.decoration.decorType,
+          [decorType]: !prev.decoration.decorType[decorType]
+        }
+      }
+    }));
+  };
+
+  const handleDecorPolicyToggle = (policy) => {
+    setNewVenue(prev => ({
+      ...prev,
+      decoration: {
+        ...prev.decoration,
+        decorPolicy: {
+          ...prev.decoration.decorPolicy,
+          [policy]: !prev.decoration.decorPolicy[policy]
+        }
+      }
+    }));
+  };
+
+  const handleRateTypeToggle = (rateType) => {
+    setNewVenue(prev => ({
+      ...prev,
+      pricingModel: {
+        ...prev.pricingModel,
+        rateType: {
+          ...prev.pricingModel.rateType,
+          [rateType]: !prev.pricingModel.rateType[rateType]
+        }
+      }
+    }));
+  };
+
+  const handlePriceChange = (priceField, value) => {
+    setNewVenue(prev => ({
+      ...prev,
+      pricingModel: {
+        ...prev.pricingModel,
+        prices: {
+          ...prev.pricingModel.prices,
+          [priceField]: value
+        }
+      }
+    }));
+  };
+
+  const handleMediaUpload = (category, files) => {
+    const fileArray = Array.from(files);
+    setNewVenue(prev => ({
+      ...prev,
+      mediaAndTrust: {
+        ...prev.mediaAndTrust,
+        [category]: [...prev.mediaAndTrust[category], ...fileArray]
+      }
+    }));
+  };
+
+  const handleMediaRemove = (category, index) => {
+    setNewVenue(prev => ({
+      ...prev,
+      mediaAndTrust: {
+        ...prev.mediaAndTrust,
+        [category]: prev.mediaAndTrust[category].filter((_, i) => i !== index)
+      }
+    }));
+  };
+
   const handleEditVenue = (venue) => {
     setEditingVenue(venue);
     setNewVenue({
       name: venue.name,
       location: venue.location,
       capacity: venue.capacity,
-      pricePerHour: venue.pricePerHour,
       description: venue.description,
       amenities: venue.amenities,
+      spaceTypes: venue.spaceTypes || [],
       images: venue.images
     });
     setShowVenueDialog(true);
@@ -491,33 +694,7 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Host Stats Section */}
-          <section className={`${styles.section} ${styles.bgLight}`}>
-            <div className={styles.container}>
-              <div className={styles.hostStatsGrid}>
-                {hostStats.map((stat) => (
-                  <motion.div 
-                    key={stat.id} 
-                    className={styles.statCard}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className={styles.statIcon}>
-                      {stat.icon}
-                    </div>
-                    <div className={styles.statContent}>
-                      <h3 className={styles.statValue}>{stat.value}</h3>
-                      <p className={styles.statLabel}>{stat.label}</p>
-                      <span className={styles.statChange}>{stat.change}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-
+          
           {/* Host Venues Section */}
           <section className={styles.section}>
             <div className={styles.container}>
@@ -528,9 +705,6 @@ export default function Home() {
               
               {hostVenues.length === 0 ? (
                 <div className={`${styles.noVenues} text-center py-12`}>
-                  <div className="text-gray-400 mb-4">
-                    <FiHome size={48} />
-                  </div>
                   <h3 className="text-xl font-semibold text-gray-600 mb-2">No venues yet</h3>
                   <p className="text-gray-500 mb-6">Start by adding your first venue to attract customers</p>
                   <button onClick={handleAddVenue} className={styles.primaryButton}>
@@ -801,9 +975,24 @@ export default function Home() {
                   </button>
                 </div>
 
+                {!editingVenue && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {currentStep === 1 ? 'Step 1. Basic Details' : 
+                       currentStep === 2 ? 'Step 2. Food & Catering' : 
+                       currentStep === 3 ? 'Step 3. Decoration' :
+                       currentStep === 4 ? 'Step 4. Pricing Model' :
+                       'Step 5. Media & Trust'}
+                    </h3>
+                  </div>
+                )}
+
                 <form onSubmit={handleVenueSubmit} className="space-y-6">
-                  {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Step 1: Basic Details */}
+                  {currentStep === 1 && !editingVenue && (
+                    <>
+                      {/* Basic Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Venue Name *
@@ -841,24 +1030,11 @@ export default function Home() {
                         type="number"
                         required
                         min="1"
+                        max="1000"
                         value={newVenue.capacity}
                         onChange={(e) => handleVenueInputChange('capacity', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="300"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Price per Hour *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        value={newVenue.pricePerHour}
-                        onChange={(e) => handleVenueInputChange('pricePerHour', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="500"
                       />
                     </div>
                   </div>
@@ -874,6 +1050,26 @@ export default function Home() {
                       rows="4"
                       placeholder="Describe your venue, its features, and what makes it special..."
                     />
+                  </div>
+
+                  {/* Space Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Space Type
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {['Indoor', 'Outdoor', 'Rooftop', 'Poolside'].map((spaceType) => (
+                        <label key={spaceType} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newVenue.spaceTypes && newVenue.spaceTypes.includes(spaceType)}
+                            onChange={() => handleSpaceTypeToggle(spaceType)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">{spaceType}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Amenities */}
@@ -928,24 +1124,721 @@ export default function Home() {
                       </label>
                     </div>
                   </div>
+                    </>
+                  )}
+
+                  {/* Step 2: Food & Catering */}
+                  {currentStep === 2 && !editingVenue && (
+                    <>
+                      <div className="space-y-6">
+                        {/* Food Menu Section */}
+                        <div>
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-lg font-semibold text-gray-800">Food Menu</h4>
+                            <button
+                              type="button"
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                            >
+                              <FiPlus size={14} />
+                              <span>Add Menu</span>
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              { key: 'veg', label: 'Veg' },
+                              { key: 'nonVeg', label: 'Non-Veg' }
+                            ].map((item) => (
+                              <label key={item.key} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.foodAndCatering.foodMenu[item.key]}
+                                  onChange={() => handleFoodMenuToggle(item.key)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{item.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Catering Policy Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Catering Policy</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {[
+                              { key: 'inHouseCatering', label: 'In-house catering available' },
+                              { key: 'outsideCateringAllowed', label: 'Outside catering allowed' },
+                              { key: 'cateringMandatory', label: 'Catering mandatory' },
+                              { key: 'barService', label: 'Bar service available' }
+                            ].map((policy) => (
+                              <label key={policy.key} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.foodAndCatering.cateringPolicy[policy.key]}
+                                  onChange={() => handleCateringPolicyToggle(policy.key)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{policy.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Step 3: Decoration */}
+                  {currentStep === 3 && !editingVenue && (
+                    <>
+                      <div className="space-y-6">
+                        {/* Decor Type Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Decor Type</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              { 
+                                key: 'standard', 
+                                label: 'Standard',
+                                description: 'Basic seating and lighting'
+                              },
+                              { 
+                                key: 'themeBased', 
+                                label: 'Theme Based',
+                                description: 'Specific Setups'
+                              },
+                              { 
+                                key: 'premiumFloral', 
+                                label: 'Premium Floral',
+                                description: 'High-end floral and stage production'
+                              }
+                            ].map((item) => (
+                              <label key={item.key} className="flex items-start space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.decoration.decorType[item.key]}
+                                  onChange={() => handleDecorTypeToggle(item.key)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                />
+                                <div>
+                                  <span className="text-sm text-gray-700">{item.label}</span>
+                                  <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Decor Policy Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Decor Policy</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {[
+                              { key: 'outsideDecoratorAllowed', label: 'Outside Decorator Allowed' }
+                            ].map((policy) => (
+                              <label key={policy.key} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.decoration.decorPolicy[policy.key]}
+                                  onChange={() => handleDecorPolicyToggle(policy.key)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{policy.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Step 4: Pricing Model */}
+                  {currentStep === 4 && !editingVenue && (
+                    <>
+                      <div className="space-y-6">
+                        {/* Rate Type Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Rate Type</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {[
+                              { key: 'perPlate', label: 'Per Plate' },
+                              { key: 'perDay', label: 'Per Day' }
+                            ].map((item) => (
+                              <label key={item.key} className="flex items-center space-x-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.pricingModel.rateType[item.key]}
+                                  onChange={() => handleRateTypeToggle(item.key)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">{item.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Conditional Price Inputs */}
+                        {newVenue.pricingModel.rateType.perPlate && (
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="relative">
+                                <i 
+                                  className="text-gray-400 cursor-help text-sm"
+                                  onMouseEnter={() => setTooltip('perPlate')}
+                                  onMouseLeave={() => setTooltip('')}
+                                >
+                                  (i)
+                                </i>
+                                {tooltip === 'perPlate' && (
+                                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                                    Includes Both Food + Venue<br/>
+                                  </div>
+                                )}
+                              </div>
+                              <h4 className="text-lg font-semibold text-gray-800 mb-4">Per Plate Pricing</h4>
+                            </div>
+                            <div className="space-y-6">
+                              {/* Veg Plate Pricing */}
+                              <div>
+                                <h5 className="text-md font-medium text-gray-700 mb-3">Veg Plate</h5>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Price
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.vegPlatePrice}
+                                      onChange={(e) => handlePriceChange('vegPlatePrice', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Min
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.vegPlateMin}
+                                      onChange={(e) => handlePriceChange('vegPlateMin', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Max
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.vegPlateMax}
+                                      onChange={(e) => handlePriceChange('vegPlateMax', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Non-Veg Plate Pricing */}
+                              <div>
+                                <h5 className="text-md font-medium text-gray-700 mb-3">Non-Veg Plate</h5>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Price
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.nonVegPlatePrice}
+                                      onChange={(e) => handlePriceChange('nonVegPlatePrice', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Min
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.nonVegPlateMin}
+                                      onChange={(e) => handlePriceChange('nonVegPlateMin', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Max
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={newVenue.pricingModel.prices.nonVegPlateMax}
+                                      onChange={(e) => handlePriceChange('nonVegPlateMax', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {newVenue.pricingModel.rateType.perDay && (
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <div className="relative">
+                                <i 
+                                  className="text-gray-400 cursor-help text-sm"
+                                  onMouseEnter={() => setTooltip('perDay')}
+                                  onMouseLeave={() => setTooltip('')}
+                                >
+                                  (i)
+                                </i>
+                                {tooltip === 'perDay' && (
+                                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                                    Price is Just for the Space
+                                  </div>
+                                )}
+                              </div>
+                              <h4 className="text-lg font-semibold text-gray-800 mb-4">Per Day Pricing</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Price Per Day
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={newVenue.pricingModel.prices.perDayPrice}
+                                  onChange={(e) => handlePriceChange('perDayPrice', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="0.00"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Step 5: Media & Trust */}
+                  {currentStep === 5 && !editingVenue && (
+                    <>
+                      <div className="space-y-6">
+                        {/* High-res Photos Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">High-res Photos</h4>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Upload high-quality photos and videos of your venue. Images and videos help customers visualize your space.
+                          </p>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*,video/*"
+                              className="hidden"
+                              id="high-res-photos"
+                              onChange={(e) => handleMediaUpload('highResPhotos', e.target.files)}
+                            />
+                            <label
+                              htmlFor="high-res-photos"
+                              className="cursor-pointer inline-block"
+                            >
+                              <div className="flex flex-col items-center">
+                                <FiImage size={48} className="text-gray-400 mb-3" />
+                                <span className="text-gray-700 font-medium">Upload Photos & Videos</span>
+                                <span className="text-gray-500 text-sm mt-1">PNG, JPG, GIF, MP4 up to 50MB</span>
+                              </div>
+                            </label>
+                          </div>
+                          {newVenue.mediaAndTrust.highResPhotos.length > 0 && (
+                            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {newVenue.mediaAndTrust.highResPhotos.map((file, index) => (
+                                <div key={index} className="relative group">
+                                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                    {file.type.startsWith('video/') ? (
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                        <FiPlay size={24} className="text-gray-600" />
+                                      </div>
+                                    ) : (
+                                      <img
+                                        src={URL.createObjectURL(file)}
+                                        alt={`Upload ${index + 1}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    )}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMediaRemove('highResPhotos', index)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <FiX size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* GST/License Section */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">GST/License</h4>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Upload your GST certificate and business licenses to build trust with customers.
+                          </p>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              className="hidden"
+                              id="gst-license"
+                              onChange={(e) => handleMediaUpload('gstLicense', e.target.files)}
+                            />
+                            <label
+                              htmlFor="gst-license"
+                              className="cursor-pointer inline-block"
+                            >
+                              <div className="flex flex-col items-center">
+                                <FiImage size={48} className="text-gray-400 mb-3" />
+                                <span className="text-gray-700 font-medium">Upload GST/License Documents</span>
+                                <span className="text-gray-500 text-sm mt-1">PNG, JPG, GIF up to 10MB</span>
+                              </div>
+                            </label>
+                          </div>
+                          {newVenue.mediaAndTrust.gstLicense.length > 0 && (
+                            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {newVenue.mediaAndTrust.gstLicense.map((file, index) => (
+                                <div key={index} className="relative group">
+                                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                    <img
+                                      src={URL.createObjectURL(file)}
+                                      alt={`Document ${index + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMediaRemove('gstLicense', index)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <FiX size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Edit Venue (show all fields) */}
+                  {editingVenue && (
+                    <>
+                      {/* Show all existing fields for editing */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Venue Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newVenue.name}
+                            onChange={(e) => handleVenueInputChange('name', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Grand Ballroom"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Location *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newVenue.location}
+                            onChange={(e) => handleVenueInputChange('location', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Mumbai, India"
+                          />
+                        </div>
+                      </div>
+                      {/* Add other editing fields here */}
+                    </>
+                  )}
 
                   {/* Actions */}
-                  <div className="flex justify-end space-x-4 pt-6 border-t">
-                    <button
-                      type="button"
-                      onClick={handleCloseDialog}
-                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      {editingVenue ? 'Update Venue' : 'Add Venue'}
-                    </button>
+                  <div className="flex justify-between space-x-4 pt-6 border-t">
+                    <div>
+                      {(currentStep === 2 || currentStep === 3 || currentStep === 4 || currentStep === 5) && !editingVenue && (
+                        <button
+                          type="button"
+                          onClick={handlePrevStep}
+                          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Previous
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowPreview(true)}
+                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Preview
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {editingVenue ? 'Update Venue' : currentStep === 5 ? 'Upload' : 'Next'}
+                      </button>
+                    </div>
                   </div>
                 </form>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Preview Dialog */}
+          {showPreview && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <motion.div 
+                className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Venue Preview</h2>
+                  <button 
+                    onClick={() => setShowPreview(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FiX size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Step 1: Basic Details */}
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 1. Basic Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600">Venue Name</h4>
+                        <p className="text-gray-800">{newVenue.name || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600">Location</h4>
+                        <p className="text-gray-800">{newVenue.location || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600">Capacity</h4>
+                        <p className="text-gray-800">{newVenue.capacity || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600">Space Type</h4>
+                        <p className="text-gray-800">
+                          {newVenue.spaceTypes && newVenue.spaceTypes.length > 0 
+                            ? newVenue.spaceTypes.join(', ') 
+                            : 'Not provided'}
+                        </p>
+                      </div>
+                    </div>
+                    {newVenue.description && (
+                      <div className="mt-3">
+                        <h4 className="text-sm font-medium text-gray-600">Description</h4>
+                        <p className="text-gray-800">{newVenue.description}</p>
+                      </div>
+                    )}
+                    {newVenue.amenities && newVenue.amenities.length > 0 && (
+                      <div className="mt-3">
+                        <h4 className="text-sm font-medium text-gray-600">Amenities</h4>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {newVenue.amenities.map((amenity, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              {amenity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step 2: Food & Catering */}
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 2. Food & Catering</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">Food Menu</h4>
+                        <div className="space-y-1">
+                          {newVenue.foodAndCatering.foodMenu.veg && (
+                            <p className="text-gray-800">• Veg</p>
+                          )}
+                          {newVenue.foodAndCatering.foodMenu.nonVeg && (
+                            <p className="text-gray-800">• Non-Veg</p>
+                          )}
+                          {!newVenue.foodAndCatering.foodMenu.veg && !newVenue.foodAndCatering.foodMenu.nonVeg && (
+                            <p className="text-gray-500">No food menu selected</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">Catering Policy</h4>
+                        <div className="space-y-1">
+                          {newVenue.foodAndCatering.cateringPolicy.inHouseCatering && (
+                            <p className="text-gray-800">• In-house Catering</p>
+                          )}
+                          {newVenue.foodAndCatering.cateringPolicy.outsideCateringAllowed && (
+                            <p className="text-gray-800">• Outside Catering Allowed</p>
+                          )}
+                          {newVenue.foodAndCatering.cateringPolicy.cateringMandatory && (
+                            <p className="text-gray-800">• Catering Mandatory</p>
+                          )}
+                          {newVenue.foodAndCatering.cateringPolicy.barService && (
+                            <p className="text-gray-800">• Bar Service</p>
+                          )}
+                          {!Object.values(newVenue.foodAndCatering.cateringPolicy).some(v => v) && (
+                            <p className="text-gray-500">No catering policy selected</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Decoration */}
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 3. Decoration</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">Decor Type</h4>
+                        <div className="space-y-1">
+                          {newVenue.decoration.decorType.standard && (
+                            <p className="text-gray-800">• Standard</p>
+                          )}
+                          {newVenue.decoration.decorType.themeBased && (
+                            <p className="text-gray-800">• Theme Based</p>
+                          )}
+                          {newVenue.decoration.decorType.premiumFloral && (
+                            <p className="text-gray-800">• Premium Floral</p>
+                          )}
+                          {!Object.values(newVenue.decoration.decorType).some(v => v) && (
+                            <p className="text-gray-500">No decor type selected</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">Decor Policy</h4>
+                        <div className="space-y-1">
+                          {newVenue.decoration.decorPolicy.outsideDecoratorAllowed && (
+                            <p className="text-gray-800">• Outside Decorator Allowed</p>
+                          )}
+                          {!newVenue.decoration.decorPolicy.outsideDecoratorAllowed && (
+                            <p className="text-gray-500">No decor policy selected</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Pricing Model */}
+                  <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 4. Pricing Model</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">Rate Type</h4>
+                        <div className="space-y-1">
+                          {newVenue.pricingModel.rateType.perPlate && (
+                            <div>
+                              <p className="text-gray-800 font-medium">Per Plate Pricing:</p>
+                              <div className="ml-4 space-y-1">
+                                {newVenue.pricingModel.prices.vegPlatePrice && (
+                                  <p className="text-gray-700">• Veg Plate: ₹{newVenue.pricingModel.prices.vegPlatePrice}
+                                    {newVenue.pricingModel.prices.vegPlateMin && newVenue.pricingModel.prices.vegPlateMax && 
+                                      ` (Min: ₹${newVenue.pricingModel.prices.vegPlateMin} - Max: ₹${newVenue.pricingModel.prices.vegPlateMax})`}
+                                  </p>
+                                )}
+                                {newVenue.pricingModel.prices.nonVegPlatePrice && (
+                                  <p className="text-gray-700">• Non-Veg Plate: ₹{newVenue.pricingModel.prices.nonVegPlatePrice}
+                                    {newVenue.pricingModel.prices.nonVegPlateMin && newVenue.pricingModel.prices.nonVegPlateMax && 
+                                      ` (Min: ₹${newVenue.pricingModel.prices.nonVegPlateMin} - Max: ₹${newVenue.pricingModel.prices.nonVegPlateMax})`}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {newVenue.pricingModel.rateType.perDay && (
+                            <div>
+                              <p className="text-gray-800 font-medium">Per Day Pricing:</p>
+                              {newVenue.pricingModel.prices.perDayPrice && (
+                                <p className="text-gray-700 ml-4">• Price Per Day: ₹{newVenue.pricingModel.prices.perDayPrice}</p>
+                              )}
+                            </div>
+                          )}
+                          {!newVenue.pricingModel.rateType.perPlate && !newVenue.pricingModel.rateType.perDay && (
+                            <p className="text-gray-500">No pricing model selected</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 5: Media & Trust */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 5. Media & Trust</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">High-res Photos</h4>
+                        <p className="text-gray-800">
+                          {newVenue.mediaAndTrust.highResPhotos.length} file(s) uploaded
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">GST/License</h4>
+                        <p className="text-gray-800">
+                          {newVenue.mediaAndTrust.gstLicense.length} document(s) uploaded
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-4 mt-6 pt-6 border-t">
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Close Preview
+                  </button>
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Continue Editing
+                  </button>
+                </div>
               </motion.div>
             </div>
           )}
