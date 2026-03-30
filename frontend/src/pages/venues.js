@@ -23,8 +23,8 @@ const VenuesPage = () => {
   const [isHost, setIsHost] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(),
-    endDate: new Date(new Date().setDate(new Date().getDate() + 1)), 
+    startDate: null,
+    endDate: null, 
   }, []);
 
   useEffect(() => {
@@ -131,6 +131,62 @@ const VenuesPage = () => {
     // Filtering can be implemented later
     console.log('Search query:', searchQuery);
     console.log('Date range:', dateRange);
+  };
+
+  const handleWidenSearch = () => {
+    // Smart search widening logic
+    let widenedSearch = false;
+    
+    // If there's a location search, try to broaden it
+    if (searchQuery && searchQuery.trim()) {
+      const locationTerms = ['delhi', 'mumbai', 'bangalore', 'hyderabad', 'chennai', 'kolkata', 'pune'];
+      const searchLower = searchQuery.toLowerCase();
+      
+      // Check if user searched for a specific area within a city
+      for (const city of locationTerms) {
+        if (searchLower.includes(city)) {
+          // Expand to the broader metropolitan area
+          if (city === 'delhi') {
+            setSearchQuery('Delhi NCR');
+            widenedSearch = true;
+            break;
+          } else {
+            // For other cities, remove specific area names and keep city name
+            setSearchQuery(city.charAt(0).toUpperCase() + city.slice(1));
+            widenedSearch = true;
+            break;
+          }
+        }
+      }
+      
+      // If no city match found, clear the location search to show all areas
+      if (!widenedSearch) {
+        setSearchQuery('');
+        widenedSearch = true;
+      }
+    }
+    
+    // If category is selected, try removing it to show more venue types
+    if (selectedCategory && !widenedSearch) {
+      setSelectedCategory('');
+      widenedSearch = true;
+    }
+    
+    // If date range is set, try clearing it to show more availability
+    if ((dateRange.startDate || dateRange.endDate) && !widenedSearch) {
+      setDateRange({ startDate: null, endDate: null });
+      widenedSearch = true;
+    }
+    
+    // If no specific filters were found to widen, clear everything
+    if (!widenedSearch) {
+      setSearchQuery('');
+      setSelectedCategory('');
+      setDateRange({ startDate: null, endDate: null });
+    }
+    
+    // Update URL to reflect the widened search
+    router.push('/venues', undefined, { shallow: true });
   };
 
   const handleClearCategory = () => {
@@ -262,12 +318,20 @@ const VenuesPage = () => {
       <div className="min-h-screen">
         {/* Hero/Header Section */}
         <motion.section
-          className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20"
+          className="relative text-white py-20"
+          style={{
+            backgroundImage: 'url(/images/venue-showcase.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+          }}
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <div className="container mx-auto px-4">
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="container mx-auto px-4 relative z-10">
             <motion.div className="max-w-3xl mx-auto text-center" variants={itemVariants}>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
                 {showMyVenues ? 'My Venues' : 'Explore Our Venues'}
@@ -382,11 +446,11 @@ const VenuesPage = () => {
 
               {/* Search Form */}
 {!showMyVenues && (
-  <div className="bg-white p-4 rounded-lg shadow-lg">
+  <div className="bg-white/20 backdrop-blur-md p-6 rounded-xl shadow-xl border border-white/30">
     <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-end">
       {/* Search Input */}
       <div className="w-full md:w-1/3">
-        <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="search" className="block text-sm font-medium text-white mb-1">
           Search
         </label>
         <div className="relative">
@@ -395,7 +459,7 @@ const VenuesPage = () => {
             id="search"
             type="text"
             placeholder="Search venues by name or location"
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-800 placeholder-gray-500"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -404,7 +468,7 @@ const VenuesPage = () => {
 
       {/* Date Range Picker */}
       <div className="w-full md:w-1/3">
-        <label htmlFor="date-range" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="date-range" className="block text-sm font-medium text-white mb-1">
           Date
         </label>
         <div className="relative">
@@ -419,8 +483,8 @@ const VenuesPage = () => {
               setDateRange({ startDate: start, endDate: end });
             }}
             isClearable
-            placeholderText="Select your dates"
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            placeholderText="Select your date"
+            className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-800 placeholder-gray-500"
             dateFormat="MMM dd"
           />
         </div>
@@ -428,13 +492,13 @@ const VenuesPage = () => {
 
       {/* Type Dropdown */}
       <div className="w-full md:w-1/4">
-        <label htmlFor="event-type" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="event-type" className="block text-sm font-medium text-white mb-1">
           Type
         </label>
         <div className="relative">
           <select
             id="event-type"
-            className="appearance-none w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            className={`appearance-none w-full pl-3 pr-10 py-3 rounded-lg bg-white/90 backdrop-blur-sm border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 ${selectedCategory ? 'text-gray-800' : 'text-gray-500'}`}
             value={selectedCategory}
             onChange={(e) => {
               const value = e.target.value;
@@ -465,7 +529,7 @@ const VenuesPage = () => {
       {/* Search Button */}
       <button
         type="submit"
-        className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out h-[42px]"
+        className="w-full md:w-auto bg-white/90 hover:bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out h-[48px] backdrop-blur-sm"
       >
         Search
       </button>
@@ -477,21 +541,21 @@ const VenuesPage = () => {
         </motion.section>
 
         {/* Main Content Area: Venues Grid */}
-        <section className="py-16 bg-gray-50 min-h-[40vh]">
+        <section className="py-16 bokeh-background min-h-[40vh] relative">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h2 className="text-3xl font-bold">
+                <h2 className="text-3xl font-bold text-white">
                   {showMyVenues ? 'My Venues' : 'Available Venues'}
                 </h2>
                 {selectedCategory && !showMyVenues && (
                   <div className="flex items-center mt-2">
-                    <span className="text-sm text-gray-600 mr-2">
+                    <span className="text-sm text-emerald-100 mr-2">
                       Category: <span className="font-semibold capitalize">{selectedCategory}</span>
                     </span>
                     <button
                       onClick={handleClearCategory}
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                      className="text-emerald-200 hover:text-emerald-100 transition-colors"
                       title="Clear category filter"
                     >
                       <FaTimes size={14} />
@@ -500,7 +564,7 @@ const VenuesPage = () => {
                 )}
               </div>
               {showMyVenues && (
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-emerald-100">
                   Showing {venues.length} venue{venues.length !== 1 ? 's' : ''}
                 </span>
               )}
@@ -515,39 +579,82 @@ const VenuesPage = () => {
                 {error}
               </div>
             ) : venues.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center">
-                <h3 className="text-xl font-semibold mb-2">
+              <div className="glassmorphism-container p-12 text-center relative z-10">
+                {/* Discovery Illustration */}
+                <div className="mb-8">
+                  <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-400/20 to-emerald-600/30 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
+                    <svg className="w-16 h-16 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-semibold text-white mb-3">
                   {selectedCategory 
                     ? `No venues found for ${selectedCategory}`
                     : showMyVenues 
                       ? 'No venues found' 
-                      : 'No venues available'
+                      : 'Discover Your Perfect Venue'
                   }
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-emerald-100 mb-8 max-w-md mx-auto">
                   {selectedCategory
-                    ? 'Try selecting a different category or clearing the filter.'
+                    ? 'Try selecting a different category or clearing filter to explore more options.'
                     : showMyVenues
-                      ? 'You have not listed any venues yet.'
-                      : 'There are currently no venues available.'
+                      ? 'You have not listed any venues yet. Start by adding your first venue!'
+                      : 'No venues match your current search. Let\'s expand your search or set up notifications for new venues.'
                   }
                 </p>
-                {selectedCategory && (
-                  <button
-                    onClick={handleClearCategory}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors mr-2"
-                  >
-                    Clear Category
-                  </button>
-                )}
-                {isHost && !showMyVenues && (
-                  <button
-                    onClick={() => setShowMyVenues(true)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    View your venues
-                  </button>
-                )}
+                
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  {!showMyVenues && (
+                    <button
+                      onClick={handleWidenSearch}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Widen Search Area
+                    </button>
+                  )}
+                  
+                  {!showMyVenues && (
+                    <button
+                      onClick={() => {
+                        alert('We\'ll notify you when new venues open in this area!');
+                      }}
+                      className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                    >
+                      Notify Me
+                    </button>
+                  )}
+                  
+                  {selectedCategory && (
+                    <button
+                      onClick={handleClearCategory}
+                      className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                    >
+                      Clear Category Filter
+                    </button>
+                  )}
+                  
+                  {isHost && !showMyVenues && (
+                    <button
+                      onClick={() => setShowMyVenues(true)}
+                      className="px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+                    >
+                      View Your Venues
+                    </button>
+                  )}
+                  
+                  {isHost && showMyVenues && venues.length === 0 && (
+                    <Link
+                      href="/host/venues/new"
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium inline-block"
+                    >
+                      Add Your First Venue
+                    </Link>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
