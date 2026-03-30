@@ -4,6 +4,8 @@ import { FiMapPin, FiChevronRight, FiUsers, FiStar, FiSearch, FiNavigation } fro
 import { FaUtensils, FaPaintBrush, FaRegCalendarCheck } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
+import { getUserLocation } from '../api/services';
 
 // Static export - no server-side rendering needed
 
@@ -11,8 +13,8 @@ const serviceCategories = [
   {
     key: 'caterer',
     name: 'Caterer',
-    icon: <FaUtensils className="text-3xl text-primary-600" />,
-    color: 'from-blue-100 to-blue-200',
+    icon: <FaUtensils className="text-3xl text-white" />,
+    backgroundImage: '/images/caterer.jpg',
     href: '/services/category/caterer',
     description: 'Find the best catering services for your event with a variety of cuisines and packages.',
     features: [
@@ -26,8 +28,8 @@ const serviceCategories = [
   {
     key: 'decorator',
     name: 'Decorator',
-    icon: <FaPaintBrush className="text-3xl text-secondary-600" />,
-    color: 'from-purple-100 to-purple-200',
+    icon: <FaPaintBrush className="text-3xl text-white" />,
+    backgroundImage: '/images/decorator.jpg',
     href: '/services/category/decorator',
     description: 'Transform your venue with stunning decorations and thematic designs.',
     features: [
@@ -41,8 +43,8 @@ const serviceCategories = [
   {
     key: 'planner',
     name: 'Event Planner',
-    icon: <FaRegCalendarCheck className="text-3xl text-pink-600" />,
-    color: 'from-pink-100 to-pink-200',
+    icon: <FaRegCalendarCheck className="text-3xl text-white" />,
+    backgroundImage: '/images/event%20planner.jpg',
     href: '/services/category/planner',
     description: 'Professional event planning services to make your occasion seamless and memorable.',
     features: [
@@ -90,6 +92,7 @@ const ServicesPage = () => {
   const [location, setLocation] = useState('');
   const [filteredServices, setFilteredServices] = useState(mockServices);
   const [isDetecting, setIsDetecting] = useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -101,6 +104,36 @@ const ServicesPage = () => {
       setFilteredServices(mockServices);
     }
   }, []);
+
+  const handleServiceCategoryClick = async (category) => {
+    try {
+      // Get user location
+      let userLocation = location;
+      
+      if (!userLocation) {
+        // Try to detect location if not already set
+        try {
+          userLocation = await getUserLocation();
+          setLocation(userLocation);
+          toast.success('Location detected successfully!');
+        } catch (error) {
+          toast.info('Using nationwide results. Enable location for better results.');
+        }
+      }
+      
+      // Navigate to category page with location filter
+      const query = userLocation ? { city: userLocation } : {};
+      router.push({
+        pathname: category.href,
+        query
+      });
+    } catch (error) {
+      console.error('Error navigating to category:', error);
+      // Fallback to basic navigation
+      router.push(category.href);
+    }
+  };
+
   const detectLocation = () => {
   if (!navigator.geolocation) {
     toast.error('Geolocation is not supported by your browser');
@@ -162,22 +195,27 @@ const ServicesPage = () => {
         {/* Service Categories */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">Browse by Service Category</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Browse by Service Category</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               {serviceCategories.map((cat) => (
-                <a
+                <div
                   key={cat.key}
-                  href={cat.href}
-                  className={`group block rounded-xl bg-gradient-to-br ${cat.color} shadow-md hover:shadow-lg transition p-8 text-center cursor-pointer`}
+                  onClick={() => handleServiceCategoryClick(cat)}
+                  className="group block rounded-xl shadow-md hover:shadow-lg transition overflow-hidden cursor-pointer relative h-64"
                 >
-                  <div className="flex flex-col items-center justify-center">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${cat.backgroundImage})` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black/80" />
+                  <div className="relative h-full flex flex-col items-center justify-center text-white p-8">
                     <div className="mb-4">{cat.icon}</div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-primary-700 transition">{cat.name}</h3>
-                    <span className="inline-flex items-center text-primary-600 font-medium group-hover:underline">
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-white transition">{cat.name}</h3>
+                    <span className="inline-flex items-center text-white font-medium group-hover:underline">
                       Explore <FiChevronRight className="ml-1" />
                     </span>
                   </div>
-                </a>
+                </div>
               ))}
             </div>
           </div>
