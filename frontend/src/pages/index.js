@@ -39,7 +39,8 @@ import {
   FiTag,
   FiPlay,
   FiAlertCircle,
-  FiInfo
+  FiInfo,
+  FiVideo
 } from 'react-icons/fi';
 import { 
   FaStar, 
@@ -284,7 +285,14 @@ export default function Home() {
   const [loadingVenues, setLoadingVenues] = useState(true);
   const [editingVenue, setEditingVenue] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
+  const [editStep, setEditStep] = useState(1);
   const [tooltip, setTooltip] = useState('');
+  const [venueBookings, setVenueBookings] = useState({});
+  const [editMediaFiles, setEditMediaFiles] = useState([]);
+  const [editVideos, setEditVideos] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarStartMonth, setCalendarStartMonth] = useState(new Date());
+  const [selectedVenue, setSelectedVenue] = useState(null);
   
   // Load venues from localStorage on component mount
   useEffect(() => {
@@ -388,6 +396,9 @@ export default function Home() {
     setShowVenueDialog(false);
     setEditingVenue(null);
     setCurrentStep(1);
+    setEditStep(1);
+    setEditMediaFiles([]);
+    setEditVideos([]);
     setNewVenue({
       name: '',
       location: '',
@@ -395,11 +406,9 @@ export default function Home() {
       description: '',
       amenities: [],
       spaceTypes: [],
+      images: [],
       foodAndCatering: {
-        foodMenu: {
-          veg: false,
-          nonVeg: false
-        },
+        foodMenu: { items: [] },
         cateringPolicy: {
           inHouseCatering: false,
           outsideCateringAllowed: false,
@@ -444,37 +453,38 @@ export default function Home() {
     e.preventDefault();
     
     if (editingVenue) {
-      // Update existing venue
+      // Update existing venue with new media files and save bookings
+      const updatedVenue = {
+        ...editingVenue,
+        images: editMediaFiles,
+        videos: editVideos,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Update venue in hostVenues
       setHostVenues(prev => 
         prev.map(venue => 
-          venue.id === editingVenue.id 
-            ? { 
-                ...newVenue, 
-                id: editingVenue.id,
-                status: editingVenue.status,
-                createdAt: editingVenue.createdAt,
-                updatedAt: new Date().toISOString()
-              }
-            : venue
+          venue.id === editingVenue.id ? updatedVenue : venue
         )
       );
-      handleCloseDialog();
-    } else {
-      // Handle multi-step form submission
-      if (currentStep < 5) {
-        handleNextStep();
-      } else {
-        // Final submission - add new venue
-        const venueToAdd = {
-          ...newVenue,
-          id: Date.now(),
-          status: 'draft', // Initially in draft status
-          createdAt: new Date().toISOString()
-        };
-        setHostVenues([...hostVenues, venueToAdd]);
-        handleCloseDialog();
+      
+      // Save bookings to localStorage
+      if (venueBookings[editingVenue.id]) {
+        localStorage.setItem(`venueBookings_${editingVenue.id}`, JSON.stringify(venueBookings[editingVenue.id]));
       }
+    } else {
+      // Add new venue
+      const venue = {
+        ...newVenue,
+        id: Date.now().toString(),
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      setHostVenues(prev => [...prev, venue]);
     }
+    
+    handleCloseDialog();
   };
 
   const handleVenueInputChange = (field, value) => {
@@ -600,6 +610,105 @@ export default function Home() {
     }
   };
 
+  const handleEditCalendarToggle = (year, month, day, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!editingVenue) return;
+    
+    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const currentBookings = venueBookings[editingVenue.id] || [];
+    const existingBooking = currentBookings.find(booking => booking.date === dateStr);
+    
+    if (existingBooking) {
+      // Remove booking (make available)
+      const updatedBookings = currentBookings.filter(booking => booking.date !== dateStr);
+      setVenueBookings(prev => ({ ...prev, [editingVenue.id]: updatedBookings }));
+    } else {
+      // Add booking (make unavailable)
+      const updatedBookings = [...currentBookings, {
+        id: Date.now(),
+        date: dateStr,
+        customer: 'Blocked by Host',
+        status: 'blocked'
+      }];
+      setVenueBookings(prev => ({ ...prev, [editingVenue.id]: updatedBookings }));
+    }
+  };
+
+  const handleEditMediaUpload = (files) => {
+    const newFiles = Array.from(files);
+    setEditMediaFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleEditVideoUpload = (files) => {
+    const newFiles = Array.from(files);
+    setEditVideos(prev => [...prev, ...newFiles]);
+  };
+
+  const handleEditMediaRemove = (index, type) => {
+    if (type === 'image') {
+      setEditMediaFiles(prev => prev.filter((_, i) => i !== index));
+    } else if (type === 'video') {
+      setEditVideos(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleEditPrevStep = () => {
+    setEditStep(prev => prev - 1);
+  };
+
+  const handleEditNextStep = () => {
+    setEditStep(prev => prev + 1);
+  };
+
+  // Helper functions for calendar
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getMonthName = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const generateCalendarDays = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const daysInMonth = getDaysInMonth(date);
+    const firstDay = getFirstDayOfMonth(date);
+    const days = [];
+
+    // Add empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+
+    return days;
+  };
+
+  const isDateBooked = (year, month, day) => {
+    if (!editingVenue) return false;
+    const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const currentBookings = venueBookings[editingVenue.id] || [];
+    return currentBookings.some(booking => booking.date === dateStr);
+  };
+
+  const isToday = (year, month, day) => {
+    const today = new Date();
+    return year === today.getFullYear() && 
+           month === today.getMonth() && 
+           day === today.getDate();
+  };
+
   const handleMediaRemove = (category, index) => {
     setNewVenue(prev => ({
       ...prev,
@@ -612,6 +721,27 @@ export default function Home() {
 
   const handleEditVenue = (venue) => {
     setEditingVenue(venue);
+    setEditStep(1);
+    setCalendarStartMonth(new Date()); // Reset calendar to current month
+    
+    // Load venue bookings from localStorage
+    const savedBookings = localStorage.getItem(`venueBookings_${venue.id}`);
+    if (savedBookings) {
+      try {
+        const parsedBookings = JSON.parse(savedBookings);
+        setVenueBookings(prev => ({ ...prev, [venue.id]: parsedBookings }));
+      } catch (error) {
+        console.error('Error loading venue bookings:', error);
+        setVenueBookings(prev => ({ ...prev, [venue.id]: [] }));
+      }
+    } else {
+      setVenueBookings(prev => ({ ...prev, [venue.id]: [] }));
+    }
+    
+    // Load existing media files
+    setEditMediaFiles(venue.images || []);
+    setEditVideos(venue.videos || []);
+    
     setNewVenue({
       name: venue.name,
       location: venue.location,
@@ -622,6 +752,49 @@ export default function Home() {
       images: venue.images
     });
     setShowVenueDialog(true);
+  };
+
+  // Calendar navigation functions
+  const handleCalendarPrev = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCalendarStartMonth(prev => {
+      const currentDate = new Date();
+      const minDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() - 1);
+      
+      // Don't allow navigation before current month
+      if (newDate < minDate) {
+        return minDate;
+      }
+      return newDate;
+    });
+  };
+
+  const handleCalendarNext = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCalendarStartMonth(prev => {
+      const currentDate = new Date();
+      const maxDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 5, 1);
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + 1);
+      
+      // Don't allow navigation beyond 6 months from current
+      if (newDate > maxDate) {
+        return maxDate;
+      }
+      return newDate;
+    });
+  };
+
+  const handleVenueClick = (venue) => {
+    setSelectedVenue(venue);
+  };
+
+  const handleVenueDetailClose = () => {
+    setSelectedVenue(null);
   };
 
   const handleTerminateVenue = (venueId) => {
@@ -636,30 +809,22 @@ export default function Home() {
     );
 
     if (action) {
-      // Terminate the venue
+      // Terminate venue
       setHostVenues(prev => 
-        prev.map(v => 
-          v.id === venueId 
-            ? { ...v, status: 'terminated', terminatedAt: new Date().toISOString() }
-            : v
+        prev.map(venue => 
+          venue.id === venueId 
+            ? { ...venue, status: 'terminated', updatedAt: new Date().toISOString() }
+            : venue
         )
       );
     } else {
       // Delete permanently
-      const confirmDelete = window.confirm(
-        'Are you absolutely sure you want to DELETE this venue permanently?\n\n' +
-        'This action cannot be undone. The venue will be completely removed from your account and will not be visible to customers or yourself.'
-      );
+      setHostVenues(prev => prev.filter(venue => venue.id !== venueId));
       
-      if (confirmDelete) {
-        // Remove from state
-        setHostVenues(prev => prev.filter(v => v.id !== venueId));
-        
-        // Also remove from localStorage to ensure permanent deletion
-        const currentVenues = JSON.parse(localStorage.getItem('hostVenues') || '[]');
-        const updatedVenues = currentVenues.filter(v => v.id !== venueId);
-        localStorage.setItem('hostVenues', JSON.stringify(updatedVenues));
-      }
+      // Also remove from localStorage to ensure permanent deletion
+      const currentVenues = JSON.parse(localStorage.getItem('hostVenues') || '[]');
+      const updatedVenues = currentVenues.filter(v => v.id !== venueId);
+      localStorage.setItem('hostVenues', JSON.stringify(updatedVenues));
     }
   };
 
@@ -774,12 +939,17 @@ export default function Home() {
                   {hostVenues.map((venue) => (
                     <motion.div 
                       key={venue.id} 
-                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer hover:scale-105 hover:border-blue-300"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5 }}
                       viewport={{ once: true }}
-                      whileHover={{ y: -5 }}
+                      whileHover={{ 
+                        y: -5,
+                        scale: 1.02,
+                        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                      }}
+                      onClick={() => handleVenueClick(venue)}
                     >
                       {/* Venue Image Container */}
                       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
@@ -852,10 +1022,17 @@ export default function Home() {
                               <span className="font-medium">{venue.capacity}</span>
                               <span className="text-gray-500 ml-1">guests</span>
                             </div>
+                            {venue.pricingModel?.prices?.perDayPrice && (
+                              <div className="flex items-center text-green-600 font-semibold">
+                                <span className="text-sm">₹</span>
+                                <span className="ml-1">{venue.pricingModel.prices.perDayPrice}</span>
+                                <span className="text-gray-500 text-sm font-normal ml-1">/day</span>
+                              </div>
+                            )}
                             {venue.pricePerHour && (
                               <div className="flex items-center text-green-600 font-semibold">
-                                <FiDollarSign className="mr-1" />
-                                {venue.pricePerHour}
+                                <span className="text-sm">₹</span>
+                                <span className="ml-1">{venue.pricePerHour}</span>
                                 <span className="text-gray-500 text-sm font-normal ml-1">/hour</span>
                               </div>
                             )}
@@ -1736,46 +1913,261 @@ export default function Home() {
                     </>
                   )}
 
-                  {/* Edit Venue (show all fields) */}
+                  {/* Edit Venue (2-step process) */}
                   {editingVenue && (
                     <>
-                      {/* Show all existing fields for editing */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Venue Name *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={newVenue.name}
-                            onChange={(e) => handleVenueInputChange('name', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Grand Ballroom"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Location *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={newVenue.location}
-                            onChange={(e) => handleVenueInputChange('location', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Mumbai, India"
-                          />
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {editStep === 1 ? 'Step 1. Availability' : 'Step 2. Media'}
+                        </h3>
+                        <div className="flex space-x-2 mt-2">
+                          <div className={`flex-1 h-1 rounded-full ${editStep >= 1 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                          <div className={`flex-1 h-1 rounded-full ${editStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
                         </div>
                       </div>
-                      {/* Add other editing fields here */}
+
+                      {/* Step 1: Availability Calendar */}
+                      {editStep === 1 && (
+                        <div className="space-y-6">
+                          <div>
+                            <h4 className="text-md font-semibold text-gray-700 mb-4">Manage Venue Availability</h4>
+                            <p className="text-sm text-gray-600 mb-4">Click on dates to mark them as available (green) or booked (red). This will be visible to customers.</p>
+                            
+                            {/* Calendar with Navigation */}
+                            <div className="space-y-4">
+                              {/* Navigation Header */}
+                              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                <button
+                                  onClick={handleCalendarPrev}
+                                  className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                                  title="Previous Month"
+                                >
+                                  <FiChevronRight className="rotate-180" size={20} />
+                                </button>
+                                
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                  {getMonthName(calendarStartMonth)}
+                                </h3>
+                                
+                                <button
+                                  onClick={handleCalendarNext}
+                                  className="p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                                  title="Next Month"
+                                >
+                                  <FiChevronRight size={20} />
+                                </button>
+                              </div>
+
+                              {/* Current Month Calendar */}
+                              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                                <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-600 mb-2">
+                                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                    <div key={day} className="py-2">{day}</div>
+                                  ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                  {generateCalendarDays(calendarStartMonth).map((day, dayIndex) => {
+                                    if (day === null) {
+                                      return <div key={dayIndex} className="p-2 h-10"></div>;
+                                    }
+                                    
+                                    const year = calendarStartMonth.getFullYear();
+                                    const month = calendarStartMonth.getMonth();
+                                    const booked = isDateBooked(year, month, day);
+                                    const today = isToday(year, month, day);
+                                    
+                                    return (
+                                      <button
+                                        key={dayIndex}
+                                        onClick={(e) => handleEditCalendarToggle(year, month, day, e)}
+                                        className={`p-2 h-10 text-sm rounded transition-colors ${
+                                          today ? 'bg-blue-600 text-white font-bold' :
+                                          booked ? 'bg-red-100 text-red-800 hover:bg-red-200' :
+                                          'bg-white hover:bg-green-100 text-gray-900 border border-gray-200'
+                                        }`}
+                                      >
+                                        {day}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Month Quick Navigation */}
+                              <div className="flex flex-wrap gap-2 justify-center">
+                                {Array.from({ length: 6 }, (_, i) => {
+                                  const monthDate = new Date(new Date().getFullYear(), new Date().getMonth() + i, 1);
+                                  const isActive = monthDate.getMonth() === calendarStartMonth.getMonth() && 
+                                                 monthDate.getFullYear() === calendarStartMonth.getFullYear();
+                                  return (
+                                    <button
+                                      key={i}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setCalendarStartMonth(monthDate);
+                                      }}
+                                      className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                                        isActive 
+                                          ? 'bg-blue-600 text-white' 
+                                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                      }`}
+                                    >
+                                      {monthDate.toLocaleDateString('en-US', { month: 'short' })}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Booked Dates List */}
+                            <div className="mt-6">
+                              <h5 className="text-sm font-semibold text-gray-700 mb-3">Booked/Blocked Dates</h5>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {venueBookings[editingVenue.id]?.length > 0 ? (
+                                  venueBookings[editingVenue.id].map((booking) => (
+                                    <div key={booking.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+                                      <span className="text-sm text-gray-700">{booking.date}</span>
+                                      <span className="text-xs text-red-600">{booking.customer}</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-gray-500 text-center py-4">No booked dates yet</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 2: Media */}
+                      {editStep === 2 && (
+                        <div className="space-y-6">
+                          {/* Images Section */}
+                          <div>
+                            <h4 className="text-md font-semibold text-gray-700 mb-4">Venue Images</h4>
+                            <p className="text-sm text-gray-600 mb-4">Add high-quality images to showcase your venue to customers.</p>
+                            
+                            {/* Upload Area */}
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
+                              <FiImage size={48} className="mx-auto text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600 mb-2">
+                                Click to upload venue images
+                              </p>
+                              <p className="text-xs text-gray-500 mb-4">
+                                PNG, JPG, GIF up to 10MB each
+                              </p>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                id="edit-venue-images"
+                                onChange={(e) => handleEditMediaUpload(e.target.files)}
+                              />
+                              <label
+                                htmlFor="edit-venue-images"
+                                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+                              >
+                                Select Images
+                              </label>
+                            </div>
+
+                            {/* Existing Images */}
+                            {editMediaFiles.length > 0 && (
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {editMediaFiles.map((file, index) => (
+                                  <div key={index} className="relative group">
+                                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                                      {file instanceof File ? (
+                                        <img
+                                          src={URL.createObjectURL(file)}
+                                          alt={`Venue image ${index + 1}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <img
+                                          src={file}
+                                          alt={`Venue image ${index + 1}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditMediaRemove(index, 'image')}
+                                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <FiX size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Videos Section */}
+                          <div>
+                            <h4 className="text-md font-semibold text-gray-700 mb-4">Venue Videos</h4>
+                            <p className="text-sm text-gray-600 mb-4">Add video tours to give customers a complete view of your venue.</p>
+                            
+                            {/* Upload Area */}
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
+                              <FiVideo size={48} className="mx-auto text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600 mb-2">
+                                Click to upload venue videos
+                              </p>
+                              <p className="text-xs text-gray-500 mb-4">
+                                MP4, WebM up to 50MB each
+                              </p>
+                              <input
+                                type="file"
+                                accept="video/*"
+                                multiple
+                                className="hidden"
+                                id="edit-venue-videos"
+                                onChange={(e) => handleEditVideoUpload(e.target.files)}
+                              />
+                              <label
+                                htmlFor="edit-venue-videos"
+                                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+                              >
+                                Select Videos
+                              </label>
+                            </div>
+
+                            {/* Existing Videos */}
+                            {editVideos.length > 0 && (
+                              <div className="space-y-3">
+                                {editVideos.map((file, index) => (
+                                  <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                    <div className="flex items-center space-x-3">
+                                      <FiVideo className="text-blue-500" />
+                                      <span className="text-sm text-gray-700">
+                                        {file instanceof File ? file.name : `Video ${index + 1}`}
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditMediaRemove(index, 'video')}
+                                      className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                    >
+                                      <FiX size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
 
                   {/* Actions */}
                   <div className="flex justify-between space-x-4 pt-6 border-t">
                     <div>
-                      {(currentStep === 2 || currentStep === 3 || currentStep === 4 || currentStep === 5) && !editingVenue && (
+                      {((currentStep === 2 || currentStep === 3 || currentStep === 4 || currentStep === 5) && !editingVenue) && (
                         <button
                           type="button"
                           onClick={handlePrevStep}
@@ -1784,27 +2176,189 @@ export default function Home() {
                           Previous
                         </button>
                       )}
+                      {editingVenue && editStep > 1 && (
+                        <button
+                          type="button"
+                          onClick={handleEditPrevStep}
+                          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          Previous
+                        </button>
+                      )}
                     </div>
-                    <div className="flex space-x-4">
-                      <button
-                        type="button"
-                        onClick={handleCloseDialog}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        {editingVenue ? 'Update Venue' : 'Next'}
-                      </button>
+                    <div>
+                      {!editingVenue && currentStep < 5 && (
+                        <button
+                          type="button"
+                          onClick={handleNextStep}
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Next
+                        </button>
+                      )}
+                      {editingVenue && editStep < 2 && (
+                        <button
+                          type="button"
+                          onClick={handleEditNextStep}
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Next
+                        </button>
+                      )}
+                      {(!editingVenue && currentStep === 5) || (editingVenue && editStep === 2) ? (
+                        <button
+                          type="submit"
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          {editingVenue ? 'Save Changes' : 'Create Venue'}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </form>
               </motion.div>
             </div>
           )}
+
+        {/* Venue Detail Modal */}
+        {selectedVenue && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div 
+              className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              {/* Header */}
+              <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200">
+                {selectedVenue.images && selectedVenue.images.length > 0 ? (
+                  selectedVenue.images[0] instanceof File ? (
+                    <img 
+                      src={URL.createObjectURL(selectedVenue.images[0])} 
+                      alt={selectedVenue.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image 
+                      src={selectedVenue.images[0]} 
+                      alt={selectedVenue.name} 
+                      width={800} 
+                      height={400}
+                      className="w-full h-full object-cover"
+                    />
+                  )
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FiImage size={64} className="text-gray-400" />
+                  </div>
+                )}
+                
+                {/* Close Button */}
+                <button
+                  onClick={handleVenueDetailClose}
+                  className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                {/* Venue Name */}
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedVenue.name}</h1>
+                
+                {/* Location */}
+                <div className="flex items-center text-gray-600 mb-6">
+                  <FiMapPin className="mr-2 text-blue-500" />
+                  <span>{selectedVenue.location}</span>
+                </div>
+
+                {/* Venue Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center text-gray-700">
+                      <FiUsers className="mr-2 text-blue-500" />
+                      <span className="font-semibold">{selectedVenue.capacity}</span>
+                      <span className="text-gray-500 ml-1">guests</span>
+                    </div>
+                  </div>
+                  
+                  {selectedVenue.pricingModel?.prices?.perDayPrice && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex flex-col">
+                        <div className="flex items-center text-green-600 font-semibold">
+                          <span className="text-xl">₹</span>
+                          <span className="ml-1">{selectedVenue.pricingModel.prices.perDayPrice}</span>
+                        </div>
+                        <span className="text-gray-500 text-sm">per day</span>
+                      </div>
+                    </div>
+                  )}
+                  {selectedVenue.pricePerHour && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex flex-col">
+                        <div className="flex items-center text-green-600 font-semibold">
+                          <span className="text-xl">₹</span>
+                          <span className="ml-1">{selectedVenue.pricePerHour}</span>
+                        </div>
+                        <span className="text-gray-500 text-sm">per hour</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center text-gray-700">
+                      <FiCalendar className="mr-2 text-blue-500" />
+                      <span className="font-semibold">Available</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedVenue.description && (
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-3">About This Venue</h3>
+                    <p className="text-gray-600 leading-relaxed">{selectedVenue.description}</p>
+                  </div>
+                )}
+
+                {/* Amenities */}
+                {selectedVenue.amenities && selectedVenue.amenities.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-3">Amenities</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedVenue.amenities.map((amenity, index) => (
+                        <span key={index} className="px-3 py-2 bg-blue-50 text-blue-700 font-medium rounded-full">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => {
+                      handleVenueDetailClose();
+                      handleEditVenue(selectedVenue);
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  >
+                    <FiEdit className="mr-2" />
+                    Edit Venue
+                  </button>
+                  <button 
+                    onClick={handleVenueDetailClose}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
         </main>
       </Layout>
     );
@@ -1813,8 +2367,8 @@ export default function Home() {
   return (
     <Layout>
       <Head>
-        <title>Venuity - Book Your Perfect Venue</title>
-        <meta name="description" content="Find and book the perfect venue for your next event" />
+        <title>Venuity - Find Perfect Venues for Events</title>
+        <meta name="description" content="Discover and book unique venues for any occasion across India" />
       </Head>
 
       <main className={styles.main}>
