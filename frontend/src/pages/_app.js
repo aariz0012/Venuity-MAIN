@@ -15,11 +15,9 @@ import api from '../utils/axios';
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    // Show loading screen on initial load
-    setIsLoading(true);
-    
     // Check for token in localStorage on initial load
     const token = localStorage.getItem('token');
     if (token) {
@@ -27,30 +25,17 @@ function MyApp({ Component, pageProps }) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 
-    // Simulate loading time (you can adjust this or remove if using actual data loading)
+    // Simulate loading time for initial load only
     const timer = setTimeout(() => {
       setIsLoading(false);
+      setIsInitialLoad(false);
     }, 3000);
 
-    const handleStart = (url) => {
-      if (url !== router.pathname) {
-        setIsLoading(true);
-      }
-    };
-
-    const handleComplete = () => {
-      setIsLoading(false);
-    };
-
-    router.events.on('routeChangeStart', handleStart);
-    router.events.on('routeChangeComplete', handleComplete);
-    router.events.on('routeChangeError', handleComplete);
+    // Note: We're NOT adding route change listeners for loading screen
+    // This prevents the loading screen from appearing on navigation
 
     return () => {
       clearTimeout(timer);
-      router.events.off('routeChangeStart', handleStart);
-      router.events.off('routeChangeComplete', handleComplete);
-      router.events.off('routeChangeError', handleComplete);
     };
 
     const responseInterceptor = api.interceptors.response.use(
@@ -90,7 +75,7 @@ function MyApp({ Component, pageProps }) {
           </Head>
 
           <AnimatePresence mode="wait">
-            {isLoading ? (
+            {isLoading && isInitialLoad ? (
               <LoadingScreen key="loading-screen" />
             ) : (
               <Component {...pageProps} key="app-content" />
