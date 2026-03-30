@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -285,7 +285,29 @@ export default function Home() {
   const [editingVenue, setEditingVenue] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [tooltip, setTooltip] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
+  
+  // Load venues from localStorage on component mount
+  useEffect(() => {
+    const savedVenues = localStorage.getItem('hostVenues');
+    if (savedVenues) {
+      try {
+        const parsedVenues = JSON.parse(savedVenues);
+        if (Array.isArray(parsedVenues) && parsedVenues.length > 0) {
+          setHostVenues(parsedVenues);
+        }
+      } catch (error) {
+        console.error('Error loading venues from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save venues to localStorage whenever they change
+  useEffect(() => {
+    if (hostVenues.length > 0) {
+      localStorage.setItem('hostVenues', JSON.stringify(hostVenues));
+    }
+  }, [hostVenues]);
+  
   const [newVenue, setNewVenue] = useState({
     name: '',
     location: '',
@@ -569,6 +591,15 @@ export default function Home() {
     }));
   };
 
+  const handleImageUpload = (file) => {
+    if (file) {
+      setNewVenue(prev => ({
+        ...prev,
+        images: [file] // Store as single image array
+      }));
+    }
+  };
+
   const handleMediaRemove = (category, index) => {
     setNewVenue(prev => ({
       ...prev,
@@ -594,14 +625,41 @@ export default function Home() {
   };
 
   const handleTerminateVenue = (venueId) => {
-    if (window.confirm('Are you sure you want to terminate this venue? It will no longer be visible to customers but you can continue anytime by publishing again.')) {
+    const venue = hostVenues.find(v => v.id === venueId);
+    if (!venue) return;
+
+    // Create confirmation dialog with options
+    const action = window.confirm(
+      'Choose an action:\n\n' +
+      'Click "OK" to TERMINATE this venue (will no longer be visible to customers but can be reactivated)\n' +
+      'Click "Cancel" to DELETE PERMANENTLY (venue will be completely removed and cannot be recovered)'
+    );
+
+    if (action) {
+      // Terminate the venue
       setHostVenues(prev => 
-        prev.map(venue => 
-          venue.id === venueId 
-            ? { ...venue, status: 'terminated', terminatedAt: new Date().toISOString() }
-            : venue
+        prev.map(v => 
+          v.id === venueId 
+            ? { ...v, status: 'terminated', terminatedAt: new Date().toISOString() }
+            : v
         )
       );
+    } else {
+      // Delete permanently
+      const confirmDelete = window.confirm(
+        'Are you absolutely sure you want to DELETE this venue permanently?\n\n' +
+        'This action cannot be undone. The venue will be completely removed from your account and will not be visible to customers or yourself.'
+      );
+      
+      if (confirmDelete) {
+        // Remove from state
+        setHostVenues(prev => prev.filter(v => v.id !== venueId));
+        
+        // Also remove from localStorage to ensure permanent deletion
+        const currentVenues = JSON.parse(localStorage.getItem('hostVenues') || '[]');
+        const updatedVenues = currentVenues.filter(v => v.id !== venueId);
+        localStorage.setItem('hostVenues', JSON.stringify(updatedVenues));
+      }
     }
   };
 
@@ -712,147 +770,180 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <div className={styles.venuesGrid}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                   {hostVenues.map((venue) => (
                     <motion.div 
                       key={venue.id} 
-                      className={`${styles.venueCard} ${
-                        venue.status === 'draft' ? 'border-yellow-400 bg-yellow-50' : 
-                        venue.status === 'terminated' ? 'border-red-400 bg-red-50 opacity-75' : 
-                        venue.status === 'published' ? 'border-green-400 bg-green-50' : 
-                        'border-gray-200'
-                      }`}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5 }}
                       viewport={{ once: true }}
+                      whileHover={{ y: -5 }}
                     >
-                      <div className={styles.venueImage}>
+                      {/* Venue Image Container */}
+                      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
                         {venue.images && venue.images.length > 0 ? (
-                          <Image 
-                            src={venue.images[0]} 
-                            alt={venue.name} 
-                            width={300} 
-                            height={200}
-                            className={styles.venueImg}
-                          />
+                          venue.images[0] instanceof File ? (
+                            <img 
+                              src={URL.createObjectURL(venue.images[0])} 
+                              alt={venue.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Image 
+                              src={venue.images[0]} 
+                              alt={venue.name} 
+                              width={400} 
+                              height={192}
+                              className="w-full h-full object-cover"
+                            />
+                          )
                         ) : (
-                          <div className="bg-gray-200 h-48 flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center">
                             <FiImage size={48} className="text-gray-400" />
                           </div>
                         )}
+                        
                         {/* Status Badge */}
-                        {venue.status === 'draft' && (
-                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-semibold">
-                            Draft
-                          </div>
-                        )}
-                        {venue.status === 'published' && (
-                          <div className="absolute top-2 right-2 bg-green-400 text-green-900 px-2 py-1 rounded text-xs font-semibold">
-                            Published
-                          </div>
-                        )}
-                        {venue.status === 'terminated' && (
-                          <div className="absolute top-2 right-2 bg-red-400 text-red-900 px-2 py-1 rounded text-xs font-semibold">
-                            Terminated
-                          </div>
-                        )}
-                      </div>
-                      <div className={styles.venueContent}>
-                        <h3 className={styles.venueName}>{venue.name}</h3>
-                        <p className={styles.venueLocation}>
-                          <FiMapPin className="inline mr-1" />
-                          {venue.location}
-                        </p>
-                        <div className={styles.venueDetails}>
-                          <span className={styles.venueCapacity}>
-                            <FiUsers className="inline mr-1" />
-                            {venue.capacity} guests
-                          </span>
-                          <span className={styles.venuePrice}>
-                            <FiDollarSign className="inline mr-1" />
-                            {venue.pricePerHour}/hour
-                          </span>
-                        </div>
-                        <div className={styles.venueAmenities}>
-                          {venue.amenities.slice(0, 3).map((amenity, index) => (
-                            <span key={index} className={styles.amenityTag}>
-                              {amenity}
+                        <div className="absolute top-3 right-3">
+                          {venue.status === 'published' && (
+                            <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                              Published
                             </span>
-                          ))}
-                          {venue.amenities.length > 3 && (
-                            <span className={styles.amenityTag}>
-                              +{venue.amenities.length - 3} more
+                          )}
+                          {venue.status === 'draft' && (
+                            <span className="px-3 py-1 bg-yellow-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                              Draft
+                            </span>
+                          )}
+                          {venue.status === 'terminated' && (
+                            <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full shadow-lg">
+                              Terminated
                             </span>
                           )}
                         </div>
-                        <div className={styles.venueActions}>
+                      </div>
+
+                      {/* Venue Content */}
+                      <div className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-bold text-gray-900 mb-1">{venue.name}</h3>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FiMapPin className="mr-2 text-blue-500" />
+                            <button
+                              onClick={() => {
+                                const query = encodeURIComponent(venue.location);
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                              }}
+                              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                              title="View on map"
+                            >
+                              {venue.location}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Venue Details */}
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center text-gray-700">
+                              <FiUsers className="mr-2 text-blue-500" />
+                              <span className="font-medium">{venue.capacity}</span>
+                              <span className="text-gray-500 ml-1">guests</span>
+                            </div>
+                            {venue.pricePerHour && (
+                              <div className="flex items-center text-green-600 font-semibold">
+                                <FiDollarSign className="mr-1" />
+                                {venue.pricePerHour}
+                                <span className="text-gray-500 text-sm font-normal ml-1">/hour</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Amenities */}
+                        {venue.amenities && venue.amenities.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-1">
+                              {venue.amenities.slice(0, 4).map((amenity, index) => (
+                                <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                                  {amenity}
+                                </span>
+                              ))}
+                              {venue.amenities.length > 4 && (
+                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                  +{venue.amenities.length - 4} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-3 border-t border-gray-100">
                           {venue.status === 'draft' && (
-                            <div className="flex gap-2">
+                            <>
                               <button 
                                 onClick={() => handlePublishVenue(venue.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiCheckCircle className="inline mr-1" />
-                                Publish Venue
+                                <FiCheckCircle className="mr-2" />
+                                Publish
                               </button>
                               <button 
                                 onClick={() => handleEditVenue(venue)}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiEdit className="inline mr-1" />
+                                <FiEdit className="mr-2" />
                                 Edit
                               </button>
-                            </div>
+                            </>
                           )}
                           {venue.status === 'published' && (
-                            <div className="flex gap-2">
-                              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                <FiEye className="inline mr-1" />
-                                View
-                              </button>
+                            <>
                               <button 
                                 onClick={() => handleEditVenue(venue)}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiEdit className="inline mr-1" />
+                                <FiEdit className="mr-2" />
                                 Edit
                               </button>
                               <button 
                                 onClick={() => handleTerminateVenue(venue.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiX className="inline mr-1" />
+                                <FiX className="mr-2" />
                                 Terminate
                               </button>
-                            </div>
+                            </>
                           )}
                           {venue.status === 'terminated' && (
-                            <div className="flex gap-2">
+                            <>
                               <button 
                                 onClick={() => handleContinueVenue(venue.id)}
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiPlay className="inline mr-1" />
-                                Continue
+                                <FiPlay className="mr-2" />
+                                Reactivate
                               </button>
                               <button 
                                 onClick={() => handleEditVenue(venue)}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
                               >
-                                <FiEdit className="inline mr-1" />
+                                <FiEdit className="mr-2" />
                                 Edit
                               </button>
-                            </div>
+                            </>
                           )}
                         </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              )}
-            </div>
-          </section>
+                )}
+              </div>
+            </section>
 
           {/* Host Features Section */}
           <section className={styles.section}>
@@ -1010,14 +1101,78 @@ export default function Home() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Location *
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={newVenue.location}
-                        onChange={(e) => handleVenueInputChange('location', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Mumbai, India"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={newVenue.location}
+                          onChange={(e) => handleVenueInputChange('location', e.target.value)}
+                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Mumbai, India"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            if (navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition(
+                                async (position) => {
+                                  try {
+                                    const { latitude, longitude } = position.coords;
+                                    
+                                    // Use OpenStreetMap Nominatim API for reverse geocoding (free)
+                                    const response = await fetch(
+                                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                                      {
+                                        headers: {
+                                          'User-Agent': 'Venuity Venue App'
+                                        }
+                                      }
+                                    );
+                                    
+                                    if (response.ok) {
+                                      const data = await response.json();
+                                      const address = data.display_name || data.address?.city || data.address?.town || 'Unknown Location';
+                                      handleVenueInputChange('location', address);
+                                    } else {
+                                      // Fallback to coordinates if API fails
+                                      handleVenueInputChange('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+                                    }
+                                  } catch (error) {
+                                    console.error('Error getting address:', error);
+                                    // Fallback to coordinates
+                                    const { latitude, longitude } = position.coords;
+                                    handleVenueInputChange('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+                                  }
+                                },
+                                (error) => {
+                                  console.error('Error getting location:', error);
+                                  let errorMessage = 'Unable to detect location. Please enter manually.';
+                                  
+                                  switch(error.code) {
+                                    case error.PERMISSION_DENIED:
+                                      errorMessage = 'Location access denied. Please enable location permissions.';
+                                      break;
+                                    case error.POSITION_UNAVAILABLE:
+                                      errorMessage = 'Location information unavailable. Please enter manually.';
+                                      break;
+                                    case error.TIMEOUT:
+                                      errorMessage = 'Location request timed out. Please try again.';
+                                      break;
+                                  }
+                                  
+                                  alert(errorMessage);
+                                }
+                              );
+                            } else {
+                              alert('Geolocation is not supported by this browser.');
+                            }
+                          }}
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                          title="Use my current location"
+                        >
+                          <FiNavigation className="h-5 w-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -1098,29 +1253,58 @@ export default function Home() {
 
                   {/* Images */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Venue Images
-                    </label>
+                    <div className="flex items-center mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Venue Profile Image
+                      </label>
+                      <div className="relative ml-2">
+                        <i 
+                          className="text-gray-400 cursor-help text-sm"
+                          onMouseEnter={() => setTooltip('venueImage')}
+                          onMouseLeave={() => setTooltip('')}
+                        >
+                          (i)
+                        </i>
+                        {tooltip === 'venueImage' && (
+                          <div className="absolute bottom-full left-0 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                            Upload a image for profile view of venue
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <FiImage size={48} className="mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF up to 10MB
-                      </p>
+                      {newVenue.images && newVenue.images.length > 0 ? (
+                        <div className="mb-4">
+                          <img 
+                            src={URL.createObjectURL(newVenue.images[0])} 
+                            alt="Selected venue image" 
+                            className="w-32 h-32 object-cover rounded-lg mx-auto"
+                          />
+                          <p className="text-sm text-green-600 mt-2">Uploaded</p>
+                        </div>
+                      ) : (
+                        <>
+                          <FiImage size={48} className="mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">
+                            Click to upload a single venue profile image
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, GIF up to 10MB
+                          </p>
+                        </>
+                      )}
                       <input
                         type="file"
-                        multiple
                         accept="image/*"
                         className="hidden"
-                        id="venue-images"
+                        id="venue-image"
+                        onChange={(e) => handleImageUpload(e.target.files[0])}
                       />
                       <label
-                        htmlFor="venue-images"
+                        htmlFor="venue-image"
                         className="mt-4 inline-block px-4 py-2 bg-gray-100 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
                       >
-                        Select Images
+                        {newVenue.images && newVenue.images.length > 0 ? 'Change Image' : 'Select Image'}
                       </label>
                     </div>
                   </div>
@@ -1604,241 +1788,20 @@ export default function Home() {
                     <div className="flex space-x-4">
                       <button
                         type="button"
-                        onClick={() => setShowPreview(true)}
+                        onClick={handleCloseDialog}
                         className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        Preview
+                        Cancel
                       </button>
                       <button
                         type="submit"
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        {editingVenue ? 'Update Venue' : currentStep === 5 ? 'Upload' : 'Next'}
+                        {editingVenue ? 'Update Venue' : 'Next'}
                       </button>
                     </div>
                   </div>
                 </form>
-              </motion.div>
-            </div>
-          )}
-
-          {/* Preview Dialog */}
-          {showPreview && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <motion.div 
-                className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Venue Preview</h2>
-                  <button 
-                    onClick={() => setShowPreview(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <FiX size={24} />
-                  </button>
-                </div>
-
-                <div className="space-y-6">
-                  {/* Step 1: Basic Details */}
-                  <div className="border-b pb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 1. Basic Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600">Venue Name</h4>
-                        <p className="text-gray-800">{newVenue.name || 'Not provided'}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600">Location</h4>
-                        <p className="text-gray-800">{newVenue.location || 'Not provided'}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600">Capacity</h4>
-                        <p className="text-gray-800">{newVenue.capacity || 'Not provided'}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600">Space Type</h4>
-                        <p className="text-gray-800">
-                          {newVenue.spaceTypes && newVenue.spaceTypes.length > 0 
-                            ? newVenue.spaceTypes.join(', ') 
-                            : 'Not provided'}
-                        </p>
-                      </div>
-                    </div>
-                    {newVenue.description && (
-                      <div className="mt-3">
-                        <h4 className="text-sm font-medium text-gray-600">Description</h4>
-                        <p className="text-gray-800">{newVenue.description}</p>
-                      </div>
-                    )}
-                    {newVenue.amenities && newVenue.amenities.length > 0 && (
-                      <div className="mt-3">
-                        <h4 className="text-sm font-medium text-gray-600">Amenities</h4>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {newVenue.amenities.map((amenity, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                              {amenity}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step 2: Food & Catering */}
-                  <div className="border-b pb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 2. Food & Catering</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">Food Menu</h4>
-                        <div className="space-y-1">
-                          {newVenue.foodAndCatering.foodMenu.veg && (
-                            <p className="text-gray-800">• Veg</p>
-                          )}
-                          {newVenue.foodAndCatering.foodMenu.nonVeg && (
-                            <p className="text-gray-800">• Non-Veg</p>
-                          )}
-                          {!newVenue.foodAndCatering.foodMenu.veg && !newVenue.foodAndCatering.foodMenu.nonVeg && (
-                            <p className="text-gray-500">No food menu selected</p>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">Catering Policy</h4>
-                        <div className="space-y-1">
-                          {newVenue.foodAndCatering.cateringPolicy.inHouseCatering && (
-                            <p className="text-gray-800">• In-house Catering</p>
-                          )}
-                          {newVenue.foodAndCatering.cateringPolicy.outsideCateringAllowed && (
-                            <p className="text-gray-800">• Outside Catering Allowed</p>
-                          )}
-                          {newVenue.foodAndCatering.cateringPolicy.cateringMandatory && (
-                            <p className="text-gray-800">• Catering Mandatory</p>
-                          )}
-                          {newVenue.foodAndCatering.cateringPolicy.barService && (
-                            <p className="text-gray-800">• Bar Service</p>
-                          )}
-                          {!Object.values(newVenue.foodAndCatering.cateringPolicy).some(v => v) && (
-                            <p className="text-gray-500">No catering policy selected</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 3: Decoration */}
-                  <div className="border-b pb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 3. Decoration</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">Decor Type</h4>
-                        <div className="space-y-1">
-                          {newVenue.decoration.decorType.standard && (
-                            <p className="text-gray-800">• Standard</p>
-                          )}
-                          {newVenue.decoration.decorType.themeBased && (
-                            <p className="text-gray-800">• Theme Based</p>
-                          )}
-                          {newVenue.decoration.decorType.premiumFloral && (
-                            <p className="text-gray-800">• Premium Floral</p>
-                          )}
-                          {!Object.values(newVenue.decoration.decorType).some(v => v) && (
-                            <p className="text-gray-500">No decor type selected</p>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">Decor Policy</h4>
-                        <div className="space-y-1">
-                          {newVenue.decoration.decorPolicy.outsideDecoratorAllowed && (
-                            <p className="text-gray-800">• Outside Decorator Allowed</p>
-                          )}
-                          {!newVenue.decoration.decorPolicy.outsideDecoratorAllowed && (
-                            <p className="text-gray-500">No decor policy selected</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 4: Pricing Model */}
-                  <div className="border-b pb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 4. Pricing Model</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">Rate Type</h4>
-                        <div className="space-y-1">
-                          {newVenue.pricingModel.rateType.perPlate && (
-                            <div>
-                              <p className="text-gray-800 font-medium">Per Plate Pricing:</p>
-                              <div className="ml-4 space-y-1">
-                                {newVenue.pricingModel.prices.vegPlatePrice && (
-                                  <p className="text-gray-700">• Veg Plate: ₹{newVenue.pricingModel.prices.vegPlatePrice}
-                                    {newVenue.pricingModel.prices.vegPlateMin && newVenue.pricingModel.prices.vegPlateMax && 
-                                      ` (Min: ₹${newVenue.pricingModel.prices.vegPlateMin} - Max: ₹${newVenue.pricingModel.prices.vegPlateMax})`}
-                                  </p>
-                                )}
-                                {newVenue.pricingModel.prices.nonVegPlatePrice && (
-                                  <p className="text-gray-700">• Non-Veg Plate: ₹{newVenue.pricingModel.prices.nonVegPlatePrice}
-                                    {newVenue.pricingModel.prices.nonVegPlateMin && newVenue.pricingModel.prices.nonVegPlateMax && 
-                                      ` (Min: ₹${newVenue.pricingModel.prices.nonVegPlateMin} - Max: ₹${newVenue.pricingModel.prices.nonVegPlateMax})`}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          {newVenue.pricingModel.rateType.perDay && (
-                            <div>
-                              <p className="text-gray-800 font-medium">Per Day Pricing:</p>
-                              {newVenue.pricingModel.prices.perDayPrice && (
-                                <p className="text-gray-700 ml-4">• Price Per Day: ₹{newVenue.pricingModel.prices.perDayPrice}</p>
-                              )}
-                            </div>
-                          )}
-                          {!newVenue.pricingModel.rateType.perPlate && !newVenue.pricingModel.rateType.perDay && (
-                            <p className="text-gray-500">No pricing model selected</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 5: Media & Trust */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Step 5. Media & Trust</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">High-res Photos</h4>
-                        <p className="text-gray-800">
-                          {newVenue.mediaAndTrust.highResPhotos.length} file(s) uploaded
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-600 mb-2">GST/License</h4>
-                        <p className="text-gray-800">
-                          {newVenue.mediaAndTrust.gstLicense.length} document(s) uploaded
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-4 mt-6 pt-6 border-t">
-                  <button
-                    onClick={() => setShowPreview(false)}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Close Preview
-                  </button>
-                  <button
-                    onClick={() => setShowPreview(false)}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Continue Editing
-                  </button>
-                </div>
               </motion.div>
             </div>
           )}
