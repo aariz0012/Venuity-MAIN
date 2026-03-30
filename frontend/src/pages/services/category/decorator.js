@@ -139,14 +139,17 @@ const DecoratorCategory = () => {
 
   if (categoryId !== 'decorator') {
     return (
-      <Layout title="Category Not Found | Venuity">
+      <Layout title="Service Not Found | Venuity">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">Category Not Found</h1>
-            <p className="text-xl mb-6">The category you're looking for doesn't exist or has been moved.</p>
-            <Link href="/services" className="btn-primary inline-flex items-center">
-              <FiChevronLeft className="mr-1" /> Back to Services
-            </Link>
+            <h1 className="text-4xl font-bold mb-4">Service Not Found</h1>
+            <p className="text-xl mb-6">The service you're looking for doesn't exist or has been moved.</p>
+            <p
+              onClick={() => router.push('/services')}
+              className="text-blue-600 hover:underline cursor-pointer"
+            >
+              Change Location
+            </p>
           </div>
         </div>
       </Layout>
