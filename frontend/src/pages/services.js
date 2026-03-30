@@ -179,7 +179,14 @@ const ServicesPage = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header/Hero Section */}
         <motion.section
-          className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20"
+          className="relative text-white py-20 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/images/services.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            minHeight: '400px'
+          }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
