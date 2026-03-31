@@ -244,6 +244,144 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Browse by Category Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Browse by Category</h2>
+            <p className="text-lg text-gray-500">Find the perfect venue for any occasion</p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
+            {/* Wedding Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1519223325659-546e617de852?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Wedding venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Wedding
+                </h3>
+                <p className="text-gray-600 mt-2">Elegant spaces for your special day</p>
+              </div>
+            </motion.div>
+
+            {/* Corporate Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1497366216546-3bcc87031c6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Corporate venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Corporate
+                </h3>
+                <p className="text-gray-600 mt-2">Professional spaces for business events</p>
+              </div>
+            </motion.div>
+
+            {/* Birthday Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1464207687429-7505649dae38?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Birthday venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Birthday
+                </h3>
+                <p className="text-gray-600 mt-2">Fun venues for memorable celebrations</p>
+              </div>
+            </motion.div>
+
+            {/* Conference Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Conference venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Conference
+                </h3>
+                <p className="text-gray-600 mt-2">Modern spaces for productive meetings</p>
+              </div>
+            </motion.div>
+
+            {/* Exhibition Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Exhibition venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Exhibition
+                </h3>
+                <p className="text-gray-600 mt-2">Spacious areas for showcases and displays</p>
+              </div>
+            </motion.div>
+
+            {/* Anniversary Category */}
+            <motion.div 
+              className="group cursor-pointer overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5 }}
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1511798541714-784a5fb5dee5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                  alt="Anniversary venues" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900 group-hover:text-brand-600 transition-colors duration-300">
+                  Anniversary
+                </h3>
+                <p className="text-gray-600 mt-2">Romantic settings for special milestones</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
         <div className="container mx-auto px-4 text-center">
