@@ -218,9 +218,9 @@ const Login = () => {
         </div>
  
         {/* Right Column - Brand Visuals (60%) */}
-        <div className="w-3/5 bg-gradient-to-br from-brand-900 to-brand-700 relative overflow-hidden">
+        <div className="w-3/5 bg-gray-50 relative overflow-hidden">
           {/* Geometric Grid Background */}
-          <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-0">
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-0 scale-75">
             {/* Mix of solid colors and images */}
             <div className="bg-brand-800 opacity-80"></div>
             <img src="/images/wedding-couple.jpg" alt="Happy wedding couple" className="object-cover w-full h-full" />
