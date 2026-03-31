@@ -104,10 +104,10 @@ const Navbar = () => {
                 <div>
                   <button
                     onClick={toggleProfile}
-                    className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                    className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600"
                   >
                     <span className="sr-only">Open user menu</span>
-                    <div className="h-8 w-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 text-white flex items-center justify-center">
                       <FiUser className="h-5 w-5" />
                     </div>
                   </button>
@@ -195,24 +195,24 @@ const Navbar = () => {
               <>
                 <Link
                   href="/venues"
-                  className={`${router.pathname.startsWith('/venues') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+                  className={`${router.pathname.startsWith('/venues') ? 'bg-brand-50 border-brand-600 text-brand-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
                   Venues
                 </Link>
                 <Link
                   href="/services"
-                  className={`${router.pathname.startsWith('/services') ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+                  className={`${router.pathname.startsWith('/services') ? 'bg-brand-50 border-brand-600 text-brand-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
                   Services
                 </Link>
               </>
             )}
             <Link
               href="/about"
-              className={`${router.pathname === '/about' ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+              className={`${router.pathname === '/about' ? 'bg-brand-50 border-brand-600 text-brand-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
               About
             </Link>
             <Link
               href="/contact"
-              className={`${router.pathname === '/contact' ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+              className={`${router.pathname === '/contact' ? 'bg-brand-50 border-brand-600 text-brand-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
               Contact Us
             </Link>
           </div>
