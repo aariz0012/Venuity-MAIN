@@ -83,7 +83,7 @@ const Login = () => {
     <Layout title="Login - Venuity">
       <div className="min-h-screen bg-white flex">
         {/* Left Column - Login Form (40%) */}
-        <div className="w-2/5 flex items-center justify-center p-12">
+        <div className="w-2/5 flex items-start justify-center p-12">
           <div className="w-full max-w-sm">
             {/* Simple Login Header */}
             <h2 className="text-4xl font-bold text-gray-900 mb-8">Login</h2>
@@ -91,7 +91,7 @@ const Login = () => {
             {/* User/Host Toggle - Sleek Tabs */}
             <div className="flex mb-8 bg-gray-100 rounded-lg p-1">
               <button
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ease-in-out ${
                   userType === 'user'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -101,7 +101,7 @@ const Login = () => {
                 User
               </button>
               <button
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-300 ease-in-out ${
                   userType === 'host'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -199,7 +199,11 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
+                      className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-300 ease-in-out disabled:opacity-50 ${
+                        userType === 'host'
+                          ? 'bg-brand-800 hover:bg-brand-900 text-white'
+                          : 'bg-brand-600 hover:bg-brand-700 text-white'
+                      }`}
                     >
                       {isSubmitting ? 'Signing in...' : 'Sign In'}
                     </button>
@@ -219,56 +223,152 @@ const Login = () => {
  
         {/* Right Column - Brand Visuals (60%) */}
         <div className="w-3/5 bg-gray-50 relative overflow-hidden">
-          {/* Geometric Grid Background */}
-          <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-0 scale-75">
-            {/* Mix of solid colors and images */}
-            <div className="bg-brand-800 opacity-80"></div>
-            <img src="/images/wedding-couple.jpg" alt="Happy wedding couple" className="object-cover w-full h-full" />
-            <div className="bg-brand-600 opacity-60"></div>
-            <img src="/images/corporate-event.jpg" alt="Corporate event setup" className="object-cover w-full h-full" />
+          {/* Geometric Grid Background - Positioned at Top */}
+          <div className="relative w-full h-1/2 grid grid-cols-4 grid-rows-4 gap-0 scale-87">
+            {/* Mix of solid colors and images - Different for User vs Host */}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-venue-management.jpg" alt="Venue management dashboard" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/wedding-couple.jpg" alt="Happy wedding couple" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-booking-calendar.jpg" alt="Booking calendar management" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/corporate-event.jpg" alt="Corporate event setup" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
  
-            <img src="/images/birthday-party.jpg" alt="Birthday celebration" className="object-cover w-full h-full" />
-            <div className="bg-brand-800 opacity-80"></div>
-            <img src="/images/elegant-dinner.jpg" alt="Elegant dinner venue" className="object-cover w-full h-full" />
-            <div className="bg-brand-600 opacity-60"></div>
+            {userType === 'host' ? (
+              <img src="/images/host-revenue-analytics.jpg" alt="Revenue analytics dashboard" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/birthday-party.jpg" alt="Birthday celebration" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-property-listing.jpg" alt="Property listing interface" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/elegant-dinner.jpg" alt="Elegant dinner venue" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
  
-            <div className="bg-brand-600 opacity-60"></div>
-            <img src="/images/outdoor-ceremony.jpg" alt="Outdoor ceremony" className="object-cover w-full h-full" />
-            <div className="bg-brand-800 opacity-80"></div>
-            <img src="/images/conference-hall.jpg" alt="Conference hall setup" className="object-cover w-full h-full" />
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-event-planners.jpg" alt="Event planners network" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/outdoor-ceremony.jpg" alt="Outdoor ceremony" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-earning-reports.jpg" alt="Earnings and financial reports" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/conference-hall.jpg" alt="Conference hall setup" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
  
-            <img src="/images/buffet-setup.jpg" alt="Beautiful buffet setup" className="object-cover w-full h-full" />
-            <div className="bg-brand-600 opacity-60"></div>
-            <img src="/images/celebration-dance.jpg" alt="Celebration dance floor" className="object-cover w-full h-full" />
-            <div className="bg-brand-800 opacity-80"></div>
+            {userType === 'host' ? (
+              <img src="/images/host-customer-support.jpg" alt="Customer support dashboard" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/buffet-setup.jpg" alt="Beautiful buffet setup" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
+            {userType === 'host' ? (
+              <img src="/images/host-growth-metrics.jpg" alt="Business growth metrics" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            ) : (
+              <img src="/images/celebration-dance.jpg" alt="Celebration dance floor" className={`object-cover w-full h-full transition-opacity duration-300 ease-in-out ${
+                userType === 'host' ? 'opacity-60' : 'opacity-100'
+              }`} />
+            )}
+            <div className={`bg-white transition-opacity duration-300 ease-in-out ${
+              userType === 'host' ? 'opacity-60' : 'opacity-80'
+            }`}></div>
           </div>
- 
-          {/* Overlay Content */}
-          <div className="relative z-10 h-full flex items-center justify-center p-12">
-            <div className="text-center text-white max-w-2xl">
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                Find the perfect space for your next big moment.
+
+          {/* Text Content - Below Grid */}
+          <div className="relative z-10 h-1/2 flex items-center justify-center pt-4 pb-12">
+            <div className="text-center text-gray-800 max-w-2xl">
+              <h1 className="text-2xl md:text-3xl font-bold mb-4 leading-tight">
+                <span className={`inline-block transition-all duration-300 ease-in-out ${
+                  userType === 'user' 
+                    ? 'opacity-100 translate-x-0' 
+                    : 'opacity-0 -translate-x-4 absolute'
+                }`}>
+                  Find the perfect space for your next big moment.
+                </span>
+                <span className={`inline-block transition-all duration-300 ease-in-out ${
+                  userType === 'host' 
+                    ? 'opacity-100 translate-x-0' 
+                    : 'opacity-0 translate-x-4 absolute'
+                }`}>
+                  Turn your space into a thriving business
+                </span>
               </h1>
-              <p className="text-xl md:text-2xl text-brand-100 mb-8">
-                From intimate gatherings to grand celebrations, discover venues that bring your vision to life.
+              <p className="text-lg md:text-xl text-gray-600 mb-6">
+                {userType === 'host' 
+                  ? "Manage bookings, track earnings, and showcase your property to India's top event planners" 
+                  : "From intimate gatherings to grand celebrations, discover venues that bring your vision to life."
+                }
               </p>
-              <div className="flex justify-center space-x-8">
+              <div className="flex justify-center space-x-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-200">500+</div>
-                  <div className="text-brand-300">Premium Venues</div>
+                  <div className="text-2xl font-bold text-brand-600">20%↑</div>
+                  <div className="text-sm text-gray-600">Average Revenue Growth</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-200">10K+</div>
-                  <div className="text-brand-300">Happy Events</div>
+                  <div className="text-2xl font-bold text-brand-600">5,000+</div>
+                  <div className="text-sm text-gray-600">Active Event Planners</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-200">4.9★</div>
-                  <div className="text-brand-300">Average Rating</div>
+                  <div className="text-2xl font-bold text-brand-600">Top 1%</div>
+                  <div className="text-sm text-gray-600">Tech-Enabled Platform</div>
                 </div>
               </div>
             </div>
           </div>
- 
+
           {/* Decorative Elements */}
           <div className="absolute top-10 right-10 w-20 h-20 bg-brand-400 rounded-full opacity-20 blur-xl"></div>
           <div className="absolute bottom-20 left-20 w-32 h-32 bg-brand-300 rounded-full opacity-20 blur-xl"></div>
