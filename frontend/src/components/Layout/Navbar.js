@@ -43,8 +43,8 @@ const Navbar = () => {
 
   const navLinkClasses = (path) =>
     `${router.pathname === path
-      ? 'text-primary-500 border-primary-500'
-      : 'text-gray-500 hover:text-primary-500 border-transparent'
+      ? 'text-brand-600 border-brand-600'
+      : 'text-gray-500 hover:text-brand-600 border-transparent'
     } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-300`;
 
   return (
@@ -152,13 +152,13 @@ const Navbar = () => {
                 </Link>
                 <Link
                   href="/register"
-                  className="btn-primary-outline"
+                  className="border border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-300"
                 >
                   Sign Up
                 </Link>
                 <Link
                   href="/host/register"
-                  className="btn-primary"
+                  className="bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-300"
                 >
                   Become a Host
                 </Link>
@@ -187,7 +187,7 @@ const Navbar = () => {
           <div className="pt-2 pb-3 space-y-1">
             <Link
               href="/"
-              className={`${router.pathname === '/' ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
+              className={`${router.pathname === '/' ? 'bg-brand-50 border-brand-600 text-brand-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'} block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}>
               Home
             </Link>
             {/* Hide Venues and Services from logged-in hosts */}
