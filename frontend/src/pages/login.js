@@ -14,10 +14,10 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { loginUser, loginHost } = useAuth();
   const router = useRouter();
-  
+ 
   // Get the redirect path from location state or default to '/'
   const from = router.query.from || '/';
-
+ 
   // Validation schema
   const LoginSchema = Yup.object().shape({
     email: Yup.string()
@@ -26,7 +26,7 @@ const Login = () => {
     password: Yup.string()
       .required('Password is required')
   });
-
+ 
   // Handle login submission
   const handleSubmit = async (values, { setSubmitting, setErrors }) => {
   try {
@@ -34,18 +34,18 @@ const Login = () => {
       email: values.email, 
       userType 
     });
-    
+ 
     setSubmitting(true);
     setErrors({});
-    
+ 
     let response;
-    
+ 
     if (userType === 'user') {
       response = await loginUser(values.email, values.password);
     } else {
       response = await loginHost(values.email, values.password);
     }
-
+ 
     if (response && response.success) {
       toast.success('Login successful!');
       router.push(userType === 'user' ? '/dashboard' : '/host/dashboard');
@@ -59,9 +59,9 @@ const Login = () => {
       message: error.message,
       response: error.response?.data
     });
-    
+ 
     let errorMessage = error.message || 'Login failed. Please try again.';
-    
+ 
     if (error.response) {
       if (error.response.status === 401) {
         errorMessage = 'Invalid email or password. Please try again.';
@@ -71,50 +71,47 @@ const Login = () => {
         errorMessage = error.response.data.error;
       }
     }
-    
+ 
     toast.error(errorMessage);
     setErrors({ submit: errorMessage });
   } finally {
     setSubmitting(false);
   }
 };
-
+ 
   return (
     <Layout title="Login - Venuity">
-      <div className="bg-gray-50 min-h-screen py-12">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-primary-600 to-secondary-600 py-4 px-6">
-            <h1 className="text-2xl font-bold text-white text-center">Log In to Your Account</h1>
-          </div>
-
-          <div className="p-6">
-            <div className="flex mb-6">
+      <div className="min-h-screen bg-white flex">
+        {/* Left Column - Login Form (40%) */}
+        <div className="w-2/5 flex items-center justify-center p-12">
+          <div className="w-full max-w-sm">
+            {/* Simple Login Header */}
+            <h2 className="text-4xl font-bold text-gray-900 mb-8">Login</h2>
+ 
+            {/* User/Host Toggle - Sleek Tabs */}
+            <div className="flex mb-8 bg-gray-100 rounded-lg p-1">
               <button
-                className={`flex-1 py-2 text-center font-medium rounded-l-md ${
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
                   userType === 'user'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
                 onClick={() => setUserType('user')}
               >
-                <div className="flex items-center justify-center">
-                  <FiUser className="mr-2" /> User
-                </div>
+                User
               </button>
               <button
-                className={`flex-1 py-2 text-center font-medium rounded-r-md ${
+                className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 ${
                   userType === 'host'
-                    ? 'bg-secondary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
                 onClick={() => setUserType('host')}
               >
-                <div className="flex items-center justify-center">
-                  <FiHome className="mr-2" /> Host
-                </div>
+                Host
               </button>
             </div>
-
+ 
             <Formik
               initialValues={{
                 email: '',
@@ -124,70 +121,85 @@ const Login = () => {
               onSubmit={handleSubmit}
             >
               {({ isSubmitting, errors, touched }) => (
-                <Form className="space-y-4">
+                <Form className="space-y-6">
+                  {/* Google Sign In Button */}
                   <div>
-                    <label htmlFor="email" className="form-label">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiMail className="text-gray-400" />
-                      </div>
-                      <Field
-                        type="email"
-                        name="email"
-                        id="email"
-                        className={`form-input pl-10 ${
-                          errors.email && touched.email ? 'border-red-500' : ''
-                        }`}
-                        placeholder="Enter your email"
-                      />
-                    </div>
-                    <ErrorMessage name="email" component="div" className="form-error" />
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Sign in with Google
+                    </button>
                   </div>
-
+ 
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                    </div>
+                  </div>
+ 
+                  {/* Email Field - Minimalist Design */}
                   <div>
-                    <label htmlFor="password" className="form-label">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <FiLock className="text-gray-400" />
-                      </div>
-                      <Field
-                        type="password"
-                        name="password"
-                        id="password"
-                        className={`form-input pl-10 ${
-                          errors.password && touched.password ? 'border-red-500' : ''
-                        }`}
-                        placeholder="Enter your password"
-                      />
-                    </div>
-                    <ErrorMessage name="password" component="div" className="form-error" />
+                    <Field
+                      type="email"
+                      name="email"
+                      id="email"
+                      className={`w-full px-0 py-3 border-0 border-b-2 border-gray-300 focus:border-brand-600 focus:ring-0 bg-transparent placeholder-gray-400 text-gray-900 transition-colors duration-200 ${
+                        errors.email && touched.email ? 'border-red-500' : ''
+                      }`}
+                      placeholder="Email"
+                    />
+                    <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
-
-                  <div className="flex justify-end">
+ 
+                  {/* Password Field - Minimalist Design */}
+                  <div>
+                    <Field
+                      type="password"
+                      name="password"
+                      id="password"
+                      className={`w-full px-0 py-3 border-0 border-b-2 border-gray-300 focus:border-brand-600 focus:ring-0 bg-transparent placeholder-gray-400 text-gray-900 transition-colors duration-200 ${
+                        errors.password && touched.password ? 'border-red-500' : ''
+                      }`}
+                      placeholder="Password"
+                    />
+                    <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+                  </div>
+ 
+                  <div className="flex justify-between items-center">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                    </label>
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-primary-600 hover:text-primary-500"
+                      className="text-sm text-brand-600 hover:text-brand-500"
                     >
                       Forgot password?
                     </button>
                   </div>
-
+ 
                   {errors.submit && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
                       {errors.submit}
                     </div>
                   )}
-
+ 
                   <div>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                      className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
                     >
                       {isSubmitting ? 'Signing in...' : 'Sign In'}
                     </button>
@@ -195,17 +207,74 @@ const Login = () => {
                 </Form>
               )}
             </Formik>
-
-            <div className="mt-4 text-center text-sm text-gray-600">
+ 
+            <div className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link href="/register" className="text-primary-600 hover:text-primary-500 font-medium">
+              <Link href="/register" className="text-brand-600 hover:text-brand-500 font-medium">
                 Sign up
               </Link>
             </div>
           </div>
         </div>
+ 
+        {/* Right Column - Brand Visuals (60%) */}
+        <div className="w-3/5 bg-gradient-to-br from-brand-900 to-brand-700 relative overflow-hidden">
+          {/* Geometric Grid Background */}
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-0">
+            {/* Mix of solid colors and images */}
+            <div className="bg-brand-800 opacity-80"></div>
+            <img src="/images/wedding-couple.jpg" alt="Happy wedding couple" className="object-cover w-full h-full" />
+            <div className="bg-brand-600 opacity-60"></div>
+            <img src="/images/corporate-event.jpg" alt="Corporate event setup" className="object-cover w-full h-full" />
+ 
+            <img src="/images/birthday-party.jpg" alt="Birthday celebration" className="object-cover w-full h-full" />
+            <div className="bg-brand-800 opacity-80"></div>
+            <img src="/images/elegant-dinner.jpg" alt="Elegant dinner venue" className="object-cover w-full h-full" />
+            <div className="bg-brand-600 opacity-60"></div>
+ 
+            <div className="bg-brand-600 opacity-60"></div>
+            <img src="/images/outdoor-ceremony.jpg" alt="Outdoor ceremony" className="object-cover w-full h-full" />
+            <div className="bg-brand-800 opacity-80"></div>
+            <img src="/images/conference-hall.jpg" alt="Conference hall setup" className="object-cover w-full h-full" />
+ 
+            <img src="/images/buffet-setup.jpg" alt="Beautiful buffet setup" className="object-cover w-full h-full" />
+            <div className="bg-brand-600 opacity-60"></div>
+            <img src="/images/celebration-dance.jpg" alt="Celebration dance floor" className="object-cover w-full h-full" />
+            <div className="bg-brand-800 opacity-80"></div>
+          </div>
+ 
+          {/* Overlay Content */}
+          <div className="relative z-10 h-full flex items-center justify-center p-12">
+            <div className="text-center text-white max-w-2xl">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Find the perfect space for your next big moment.
+              </h1>
+              <p className="text-xl md:text-2xl text-brand-100 mb-8">
+                From intimate gatherings to grand celebrations, discover venues that bring your vision to life.
+              </p>
+              <div className="flex justify-center space-x-8">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-200">500+</div>
+                  <div className="text-brand-300">Premium Venues</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-200">10K+</div>
+                  <div className="text-brand-300">Happy Events</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-200">4.9★</div>
+                  <div className="text-brand-300">Average Rating</div>
+                </div>
+              </div>
+            </div>
+          </div>
+ 
+          {/* Decorative Elements */}
+          <div className="absolute top-10 right-10 w-20 h-20 bg-brand-400 rounded-full opacity-20 blur-xl"></div>
+          <div className="absolute bottom-20 left-20 w-32 h-32 bg-brand-300 rounded-full opacity-20 blur-xl"></div>
+        </div>
       </div>
-
+ 
       <ForgotPasswordModal
         isOpen={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
@@ -213,5 +282,6 @@ const Login = () => {
     </Layout>
   );
 };
-
+ 
 export default Login;
+
