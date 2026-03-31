@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 // Static export - no server-side rendering needed
@@ -75,7 +75,7 @@ const Home = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -94,26 +94,29 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <motion.section 
-        className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20"
+        className="relative bg-gradient-to-br from-brand-600/90 via-brand-700/80 to-brand-800/70 text-white py-20"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <div className="container mx-auto px-4">
+        {/* Hero Background Image */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519452575417-564c1401ecc0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center bg-no-repeat"></div>
+        
+        <div className="relative z-10 container mx-auto px-4">
           <motion.div className="max-w-3xl mx-auto text-center" variants={itemVariants}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">Find and Book Amazing Venues</h1>
-            <p className="text-xl mb-8">Discover the perfect space for your next event, meeting, or celebration</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Find the Perfect Venue for Your Next Event</h1>
+            <p className="text-xl md:text-2xl font-medium mb-8 text-white/95">Discover and book exceptional spaces for memorable moments</p>
             
             {/* Search Form */}
-            <div className="bg-white p-4 rounded-lg shadow-lg">
+            <div className="bg-white/95 backdrop-blur-sm p-6 rounded-2xl shadow-2xl">
               <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                    <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Search venues by name or location"
-                      className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                      placeholder="Location"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-gray-800 bg-white/90"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -125,16 +128,27 @@ const Home = () => {
                     <input
                       type="text"
                       placeholder="Select dates"
-                      className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-gray-800 bg-white/90"
                       value={`${format(dateRange.startDate, 'MMM dd')} - ${format(dateRange.endDate, 'MMM dd')}`}
                       readOnly
                       // In a real app, you would use a date picker component here
                     />
                   </div>
                 </div>
+                <div className="flex-1">
+                  <div className="relative">
+                    <FaUsers className="absolute left-3 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Number of guests"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-gray-800 bg-white/90"
+                      // In a real app, you would add state for guest count
+                    />
+                  </div>
+                </div>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out"
+                  className="bg-brand-700 hover:bg-brand-800 text-white py-3 px-8 rounded-xl font-medium transition duration-300 ease-in-out shadow-lg hover:shadow-xl"
                 >
                   Search
                 </button>
@@ -177,7 +191,7 @@ const Home = () => {
                     </div>
                     <p className="text-gray-700 mb-3 line-clamp-2">{venue.description}</p>
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-blue-600">${venue.price ? venue.price.toFixed(2) : '0.00'}/day</span>
+                      <span className="font-bold text-brand-600">${venue.price ? venue.price.toFixed(2) : '0.00'}/day</span>
                       <span className="text-sm text-gray-500">Capacity: {venue.capacity}</span>
                     </div>
                   </div>
@@ -189,7 +203,7 @@ const Home = () => {
           <div className="text-center mt-12">
             <Link 
               href="/venues" 
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out"
+              className="inline-block bg-brand-600 hover:bg-brand-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out"
             >
               View All Venues
             </Link>
@@ -204,24 +218,24 @@ const Home = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaSearch className="text-blue-600 text-2xl" />
+              <div className="bg-brand-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaSearch className="text-brand-600 text-2xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Search</h3>
               <p className="text-gray-600">Browse through our collection of venues and find the perfect match for your needs.</p>
             </div>
             
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaRegCalendarAlt className="text-blue-600 text-2xl" />
+              <div className="bg-brand-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaRegCalendarAlt className="text-brand-600 text-2xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Book</h3>
               <p className="text-gray-600">Select your dates and book your venue with our simple booking process.</p>
             </div>
             
             <div className="text-center">
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaStar className="text-blue-600 text-2xl" />
+              <div className="bg-brand-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaStar className="text-brand-600 text-2xl" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Enjoy</h3>
               <p className="text-gray-600">Enjoy your event and share your experience by leaving a review.</p>
