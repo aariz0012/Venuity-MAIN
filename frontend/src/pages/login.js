@@ -221,8 +221,11 @@ const Login = () => {
  
             <div className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link href="/register" className="text-brand-600 hover:text-brand-500 font-medium">
-                Sign up
+              <Link 
+                href={userType === 'host' ? '/host/register' : '/register'} 
+                className="text-brand-600 hover:text-brand-500 font-medium"
+              >
+                {userType === 'host' ? 'Become a Host' : 'Sign up'}
               </Link>
             </div>
           </div>
