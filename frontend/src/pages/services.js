@@ -232,7 +232,7 @@ const ServicesPage = () => {
         <section className="pb-8">
           <div className="container mx-auto px-4">
             <div className="max-w-xl mx-auto">
-              <form className="flex items-center bg-white rounded-lg shadow p-4 gap-2">
+              <form className="flex items-center glassmorphism-container p-4 gap-2">
                 <FiMapPin className="text-xl text-primary-600" />
                 <input
                   type="text"
