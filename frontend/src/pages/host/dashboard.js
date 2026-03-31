@@ -302,8 +302,8 @@ const HostDashboard = () => {
         {/* Header */}
         <div className="md:flex md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Welcome back, {host.businessName || 'Host'}!
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
+              Welcome back, {host.businessName || host.fullName || 'Host'}!
             </h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
               Manage your venues and track your performance.
@@ -317,12 +317,12 @@ const HostDashboard = () => {
             initial="hidden"
             animate="visible"
             variants={fadeIn}
-            className="bg-white border border-gray-100 rounded-xl shadow-sm"
+            className="bg-white border border-gray-100 rounded-3xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
-                  <FiHome className="h-6 w-6 text-white" />
+                <div className="flex-shrink-0 bg-green-50 rounded-full p-3">
+                  <FiHome className="h-6 w-6 text-brand-600" aria-hidden="true" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -343,12 +343,12 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.1 }}
-            className="bg-white border border-gray-100 rounded-xl shadow-sm"
+            className="bg-white border border-gray-100 rounded-3xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
-                  <FiCalendar className="h-6 w-6 text-white" />
+                <div className="flex-shrink-0 bg-green-50 rounded-full p-3">
+                  <FiCalendar className="h-6 w-6 text-brand-600" aria-hidden="true" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -369,19 +369,19 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.2 }}
-            className="bg-white border border-gray-100 rounded-xl shadow-sm"
+            className="bg-white border border-gray-100 rounded-3xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
-                  <FiDollarSign className="h-6 w-6 text-white" />
+                <div className="flex-shrink-0 bg-green-50 rounded-full p-3">
+                  <FiDollarSign className="h-6 w-6 text-brand-600" aria-hidden="true" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       Monthly Revenue
                     </dt>
-                    <dd className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <dd className="text-3xl font-bold text-gray-900 dark:text-white">
                       ₹{stats.monthlyRevenue.toLocaleString()}
                     </dd>
                   </dl>
@@ -395,12 +395,12 @@ const HostDashboard = () => {
             animate="visible"
             variants={fadeIn}
             transition={{ delay: 0.3 }}
-            className="bg-white border border-gray-100 rounded-xl shadow-sm"
+            className="bg-white border border-gray-100 rounded-3xl shadow-sm"
           >
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
-                  <FiUsers className="h-6 w-6 text-white" />
+                <div className="flex-shrink-0 bg-green-50 rounded-full p-3">
+                  <FiUsers className="h-6 w-6 text-brand-600" aria-hidden="true" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -465,14 +465,23 @@ const HostDashboard = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <FiCalendar className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                        Yet to Bookings! Have Patience...
+                    <div className="text-center py-12">
+                      <div className="mx-auto w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center mb-6">
+                        <FiCalendar className="h-12 w-12 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        No recent bookings yet
                       </h3>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Bookings will appear here when customers make reservations
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                        Listings with high-quality photos and clear descriptions tend to book faster!
                       </p>
+                      <button 
+                        onClick={() => router.push('/host/venues')}
+                        className="inline-flex items-center px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <FiPlus className="mr-2 h-4 w-4" />
+                        Optimize your Listing
+                      </button>
                     </div>
                   )}
                 </div>
@@ -498,17 +507,17 @@ const HostDashboard = () => {
                 <div className="space-y-4">
                   <button
                     onClick={handleOpenVenues}
-                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900 transition-colors duration-200"
                   >
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                        <FiHome className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center">
+                        <FiHome className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div className="ml-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                           My Venues
                         </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                           Manage your venues
                         </p>
                       </div>
@@ -517,17 +526,17 @@ const HostDashboard = () => {
 
                   <button
                     onClick={handleOpenBookings}
-                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900 transition-colors duration-200"
                   >
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                        <FiCalendar className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center">
+                        <FiCalendar className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div className="ml-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                           Bookings
                         </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                           View all bookings
                         </p>
                       </div>
@@ -536,17 +545,17 @@ const HostDashboard = () => {
 
                   <button
                     onClick={() => router.push('/host/analytics')}
-                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900 transition-colors duration-200"
                   >
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                        <FiBarChart2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center">
+                        <FiBarChart2 className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div className="ml-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                           Analytics
                         </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                           View performance metrics
                         </p>
                       </div>
@@ -555,17 +564,17 @@ const HostDashboard = () => {
 
                   <button
                     onClick={handleOpenSettings}
-                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900 transition-colors duration-200"
                   >
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-                        <FiSettings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center">
+                        <FiSettings className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                       </div>
                       <div className="ml-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
                           Settings
                         </h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm font-normal text-gray-500 dark:text-gray-400">
                           Account settings
                         </p>
                       </div>
