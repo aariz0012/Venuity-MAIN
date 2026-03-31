@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaUsers } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaUsers, FaCheckCircle, FaUsers as FaCapacity } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 // Static export - no server-side rendering needed
@@ -13,6 +13,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');  
+  const [loadedImages, setLoadedImages] = useState({});
   const [dateRange, setDateRange] = useState({
     startDate: new Date(),
     endDate: new Date(new Date().setDate(new Date().getDate() + 1))
@@ -48,6 +49,10 @@ const Home = () => {
     // In a real app, you would filter venues or make an API call with search params
     console.log('Search query:', searchQuery);
     console.log('Date range:', dateRange);
+  };
+
+  const handleImageLoad = (venueId) => {
+    setLoadedImages(prev => ({ ...prev, [venueId]: true }));
   };
 
   // Hero section animation variants
@@ -167,32 +172,72 @@ const Home = () => {
             {featuredVenues.map((venue) => (
               <Link href={`/venues/${venue._id}`} key={venue._id}>
                 <motion.div 
-                  className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300"
-                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 group"
+                  whileHover={{ y: -8 }}
                 >
-                  <div className="h-48 overflow-hidden">
+                  {/* Image Container with Skeleton State */}
+                  <div className="relative aspect-video overflow-hidden bg-gray-100">
+                    {!loadedImages[venue._id] && (
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse">
+                        <div className="h-full w-full bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                      </div>
+                    )}
                     <img 
-                      src={venue.images && venue.images[0] ? venue.images[0] : 'https://via.placeholder.com/400x300?text=No+Image'} 
+                      src={venue.images && venue.images[0] ? venue.images[0] : 'https://images.unsplash.com/photo-1519452575417-564c1401ecc0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80'} 
                       alt={venue.name} 
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${loadedImages[venue._id] ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={() => handleImageLoad(venue._id)}
                     />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold">{venue.name}</h3>
-                      <div className="flex items-center">
-                        <FaStar className="text-yellow-400 mr-1" />
-                        <span>{venue.averageRating ? venue.averageRating.toFixed(1) : 'New'}</span>
+                    
+                    {/* Overlay with Rating Badge */}
+                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full shadow-md">
+                      <div className="flex items-center space-x-1">
+                        <FaStar className="text-yellow-400 text-sm" />
+                        <span className="text-sm font-semibold text-gray-900">
+                          {venue.averageRating ? venue.averageRating.toFixed(1) : '4.9'}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center text-gray-600 mb-3">
-                      <FaMapMarkerAlt className="mr-1" />
-                      <span>{venue.location ? venue.location.city : 'Location not specified'}</span>
+                    
+                    {/* Available Status Badge */}
+                    <div className="absolute top-4 left-4">
+                      <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                        <FaCheckCircle className="text-xs" />
+                        <span>Available</span>
+                      </div>
                     </div>
-                    <p className="text-gray-700 mb-3 line-clamp-2">{venue.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-brand-600">${venue.price ? venue.price.toFixed(2) : '0.00'}/day</span>
-                      <span className="text-sm text-gray-500">Capacity: {venue.capacity}</span>
+                  </div>
+                  
+                  {/* Content Section */}
+                  <div className="p-6">
+                    {/* Title and Location */}
+                    <div className="mb-4">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-brand-600 transition-colors duration-300">
+                        {venue.name || 'Luxury Event Space'}
+                      </h3>
+                      <div className="flex items-center text-gray-600 text-sm">
+                        <FaMapMarkerAlt className="mr-2 text-brand-500" />
+                        <span>{venue.location ? venue.location.city : 'Downtown District'}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                      {venue.description || 'Elegant venue perfect for weddings, corporate events, and special celebrations.'}
+                    </p>
+                    
+                    {/* Footer with Price and Capacity */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                      <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-gray-900">
+                          ${venue.price ? venue.price.toFixed(0) : '250'}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">/ hour</span>
+                      </div>
+                      <div className="flex items-center text-gray-600 text-sm">
+                        <FaCapacity className="mr-1 text-brand-500" />
+                        <span>{venue.capacity || '50'} guests</span>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -203,7 +248,7 @@ const Home = () => {
           <div className="text-center mt-12">
             <Link 
               href="/venues" 
-              className="inline-block bg-brand-600 hover:bg-brand-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out"
+              className="inline-block bg-brand-600 hover:bg-brand-700 text-white py-3 px-8 rounded-xl font-medium transition duration-300 ease-in-out shadow-lg hover:shadow-xl"
             >
               View All Venues
             </Link>
