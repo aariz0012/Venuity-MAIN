@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -14,6 +14,13 @@ const Login = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { loginUser, loginHost } = useAuth();
   const router = useRouter();
+
+  // Check for userType query parameter on mount
+  useEffect(() => {
+    if (router.query.userType === 'host') {
+      setUserType('host');
+    }
+  }, [router.query.userType]);
  
   // Get the redirect path from location state or default to '/'
   const from = router.query.from || '/';
