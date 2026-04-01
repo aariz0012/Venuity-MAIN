@@ -1,61 +1,41 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FiSearch, FiShield, FiMessageCircle, FiStar, FiClipboard, FiHeadphones } from 'react-icons/fi';
+import { FiSearch, FiShield, FiMessageCircle, FiStar, FiClipboard, FiHeadphones, FiMapPin, FiCalendar, FiAward, FiUsers } from 'react-icons/fi';
+import Link from 'next/link';
 
 // Static export - no server-side rendering needed
 
-const aboutSections = [
+// Mission & Vision sections for zig-zag layout
+const missionSections = [
   {
-    title: "Welcoming Introduction",
-        content: `Welcome to Venuity – your all-in-one platform for discovering, booking, and managing venues for any occasion. Whether you’re planning a wedding, corporate event, birthday party, or any special gathering, Venuity makes it easy to find the perfect venue, compare options, and secure your reservation—all in just a few clicks.`,
-    imageAlt: "People celebrating at an event",
-    image: "/images/About/welcome.png",
+    title: "Our Mission",
+    content: `To democratize access to the world's most inspiring spaces, empowering every individual to host unforgettable moments through seamless technology and curated hospitality.`,
+    imageAlt: "Beautiful venue space with elegant decor",
+    image: "/images/About/mission-venue.jpg",
     reverse: false
   },
   {
-    title: "Mission Statement",
-        content: `At Venuity, our mission is to make event planning effortless and enjoyable for everyone. We are dedicated to connecting people with the perfect venues by providing a transparent, secure, and user-friendly platform. We value trust, convenience, and exceptional service, striving to empower our users to create memorable experiences with ease and confidence.`,
-    imageAlt: "Team collaborating on event planning",
-    image: "/images/About/mission.png",
+    title: "Our Vision",
+    content: `To redefine the global standard of event planning, creating a future where finding the perfect stage for life's milestones is as effortless as the celebration itself.`,
+    imageAlt: "Professional event manager coordinating",
+    image: "/images/About/vision-host.jpg",
     reverse: true
-  },
-  {
-        title: "Why Choose Venuity?",
-    content: (
-      <ul className="list-disc list-inside space-y-1">
-        <li><b>Extensive Venue Selection:</b> Find a wide variety of venues to suit any event, style, or budget.</li>
-        <li><b>Seamless Booking Experience:</b> Enjoy a simple, intuitive process from discovery to reservation.</li>
-        <li><b>Verified Reviews & Ratings:</b> Make informed decisions with honest feedback from real users.</li>
-        <li><b>Secure Payments:</b> Book with confidence using our safe and reliable payment system.</li>
-        <li><b>Dedicated Customer Support:</b> Get help whenever you need it from our friendly support team.</li>
-        <li><b>Flexible Cancellation Policies:</b> Plans changed? We offer flexible options to accommodate your needs.</li>
-        <li><b>Exclusive Deals & Offers:</b> Access special discounts and promotions available only to our members.</li>
-      </ul>
-    ),
-    imageAlt: "Venue options collage",
-    image: "/images/About/why-choose.png",
-    reverse: false
-  },
-  {
-    title: "Meet the Team",
-        content: `Behind Venuity is a passionate group of event enthusiasts, tech innovators, and customer service professionals. We understand the excitement—and the challenges—of planning memorable events, which is why we’re dedicated to making the process as smooth and enjoyable as possible. Our diverse team brings together years of experience in hospitality, technology, and support, all united by a shared commitment to helping you create unforgettable moments. We’re here to support you every step of the way!`,
-        imageAlt: "Venuity team photo",
-    image: "/images/About/team.png",
-    reverse: true
-  },
-  {
-    title: "Contact Us",
-    content: (
-      <div>
-        <p>Have questions, feedback, or need assistance? We’re here to help!</p>
-        <p>Reach out to our support team anytime at <a href="mailto:khanaariz0012@gmail.com" className="text-blue-600 underline">khanaariz0012@gmail.com</a>, and we’ll get back to you as soon as possible.</p>
-        <p>You can also visit our <a href="#" className="text-blue-600 underline">Help Center</a> for answers to common questions.</p>
-      </div>
-    ),
-    imageAlt: "Contact support illustration",
-    image: "/images/About/contact.png",
-    reverse: false
   }
+];
+
+// Stats for the numbers grid
+const statsData = [
+  { icon: <FiMapPin className="w-8 h-8" />, number: "500+", label: "Partnered Venues" },
+  { icon: <FiCalendar className="w-8 h-8" />, number: "10k+", label: "Successful Events" },
+  { icon: <FiStar className="w-8 h-8" />, number: "4.9★", label: "Average Rating" },
+  { icon: <FiHeadphones className="w-8 h-8" />, number: "24/7", label: "Expert Support" }
+];
+
+// Core values for pill layout
+const coreValues = [
+  { title: "Transparency", description: "Clear pricing, honest reviews, and open communication" },
+  { title: "Innovation", description: "Cutting-edge technology to simplify event planning" },
+  { title: "Excellence", description: "Uncompromising quality in every venue and service" }
 ];
 
 const fadeInUp = {
@@ -65,39 +45,69 @@ const fadeInUp = {
 
 const About = () => (
   <div className="min-h-screen">
-    {/* Hero Section */}
-    <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
-      <div className="container mx-auto px-4 text-center">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">About Venuity</h1>
-        <p className="text-xl mb-8">Discover what makes us the best choice for your next event.</p>
+    {/* Hero Section - Atmospheric Imagery */}
+    <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image with Blur */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 via-emerald-800/80 to-teal-700/70"></div>
+        <img 
+          src="/images/About/hero-event.jpg" 
+          alt="Warm bustling event" 
+          className="w-full h-full object-cover"
+          style={{ filter: 'blur(2px)' }}
+        />
+      </div>
+      
+      {/* Gradient Overlay for Readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+      
+      {/* Hero Content */}
+      <div className="relative z-10 text-center px-4">
+        <motion.h1 
+          className="text-5xl md:text-7xl font-black tracking-tight text-white mb-6"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        >
+          About Venuity
+        </motion.h1>
+        <motion.p 
+          className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto font-light"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+        >
+          Where extraordinary events meet perfect venues
+        </motion.p>
       </div>
     </section>
 
-    {/* About Sections */}
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4 space-y-12">
-        {aboutSections.map((section, idx) => (
+    {/* Zig-Zag Storytelling - Mission & Vision */}
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        {missionSections.map((section, idx) => (
           <motion.div
             key={section.title}
-            className="flex flex-col md:flex-row items-center md:space-x-8 bg-white rounded-lg shadow-md p-6"
+            className={`flex flex-col ${section.reverse ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 mb-24 last:mb-0`}
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ once: true, amount: 0.3 }}
           >
-            
-            {/* Image placeholder - replace null with actual image path or import */}
-            {section.image ? (
-              <img src={section.image} alt={section.imageAlt} className="w-40 h-40 object-cover rounded-full mb-4 md:mb-0" />
-            ) : (
-              <div className="w-40 h-40 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 mb-4 md:mb-0 text-center text-sm">
-                Add image here
-              </div>
-            )}
+            {/* Text Content */}
             <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-2 text-indigo-600">{section.title}</h2>
-              <div className="text-gray-700 text-base">
-                {typeof section.content === 'string' ? <p>{section.content}</p> : section.content}
+              <h2 className="text-4xl font-bold mb-6 text-emerald-700">{section.title}</h2>
+              <p className="text-lg text-gray-700 leading-relaxed">{section.content}</p>
+            </div>
+            
+            {/* Image */}
+            <div className="flex-1">
+              <div className="rounded-3xl overflow-hidden shadow-2xl">
+                <img 
+                  src={section.image} 
+                  alt={section.imageAlt} 
+                  className="w-full h-96 object-cover"
+                />
               </div>
             </div>
           </motion.div>
@@ -105,76 +115,115 @@ const About = () => (
       </div>
     </section>
 
-    {/* Features Section */}
-    <section id="features" className="py-20 bg-white">
+    {/* Venuity by the Numbers Grid */}
+    <section className="py-20 bg-emerald-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800">Our Core Features</h2>
-          <p className="text-lg text-gray-600 mt-2">Everything you need to plan the perfect event.</p>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">Venuity by the Numbers</h2>
+          <p className="text-xl text-gray-600">Proven excellence in venue management</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <FiSearch className="w-10 h-10 text-indigo-500" />,
-              title: "Advanced Search & Filtering",
-              description: "Quickly find the perfect venue with powerful search, custom filters, and an interactive map view.",
-            },
-            {
-              icon: <FiShield className="w-10 h-10 text-indigo-500" />,
-              title: "Secure Online Booking",
-              description: "Book your venue with confidence using our secure and streamlined payment and reservation system.",
-            },
-            {
-              icon: <FiMessageCircle className="w-10 h-10 text-indigo-500" />,
-              title: "Direct Communication",
-              description: "Connect directly with venue hosts to ask questions, discuss details, and ensure everything is perfect.",
-            },
-            {
-              icon: <FiStar className="w-10 h-10 text-indigo-500" />,
-              title: "Verified Reviews & Ratings",
-              description: "Make informed decisions by reading authentic reviews and ratings from our community of users.",
-            },
-            {
-              icon: <FiClipboard className="w-10 h-10 text-indigo-500" />,
-              title: "Event Management Tools",
-              description: "Stay organized with a personalized dashboard to manage bookings, track payments, and communicate.",
-            },
-            {
-              icon: <FiHeadphones className="w-10 h-10 text-indigo-500" />,
-              title: "24/7 Customer Support",
-              description: "Our dedicated support team is available around the clock to assist you with any questions or issues.",
-            },
-          ].map((feature, idx) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {statsData.map((stat, idx) => (
             <motion.div
               key={idx}
-              className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
+              className="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               variants={fadeInUp}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
+              transition={{ delay: idx * 0.1 }}
             >
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-4">
-                {feature.icon}
+              <div className="flex justify-center mb-4 text-emerald-600">
+                {stat.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{stat.number}</div>
+              <div className="text-gray-600">{stat.label}</div>
             </motion.div>
           ))}
         </div>
       </div>
     </section>
 
-    {/* CTA Section */}
-    <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
+    {/* Core Values - Pill Layout */}
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Core Values</h2>
+          <p className="text-xl text-gray-600">The principles that guide everything we do</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {coreValues.map((value, idx) => (
+            <motion.div
+              key={idx}
+              className="p-8 bg-gray-50 rounded-2xl border-2 border-transparent hover:border-emerald-500 transition-all duration-300 cursor-pointer"
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <h3 className="text-2xl font-bold text-emerald-700 mb-4">{value.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{value.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* Founder's Vision */}
+    <section className="py-20 bg-emerald-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            {/* Founder Image */}
+            <div className="flex-1">
+              <div className="rounded-3xl overflow-hidden shadow-2xl">
+                <img 
+                  src="/images/About/founder-headshot.jpg" 
+                  alt="Founder of Venuity" 
+                  className="w-full h-96 object-cover"
+                />
+              </div>
+            </div>
+            
+            {/* Founder Quote */}
+            <div className="flex-1">
+              <h2 className="text-4xl font-bold text-gray-800 mb-6">The Founder's Vision</h2>
+              <blockquote className="text-lg text-gray-700 leading-relaxed mb-8 italic">
+                "I started Venuity because I believe every celebration deserves the perfect setting. After planning countless events and seeing the frustration people face finding venues, I knew there had to be a better way. We're not just building software—we're creating connections, enabling memories, and making dreams come true, one venue at a time."
+              </blockquote>
+              <div className="text-emerald-700 font-semibold text-x2">
+                - Aariz Khan, Founder 
+              </div>
+              <div className="mt-4 text-emerald-500 font-signature text-2xl">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Secondary Call to Action */}
+    <section className="py-20 bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold mb-6">Ready to Host Your Next Event?</h2>
-                <p className="text-xl mb-8 max-w-2xl mx-auto">Join thousands of satisfied customers who have found their perfect venue through Venuity.</p>
-        <a 
-          href="/register" 
-          className="inline-block bg-white text-indigo-700 hover:bg-gray-100 py-3 px-8 rounded-md font-semibold transition duration-300 ease-in-out"
-        >
-          Sign Up Now
-        </a>
+        <h2 className="text-4xl font-bold mb-6">Inspired by our vision?</h2>
+        <p className="text-xl mb-10 max-w-3xl mx-auto">
+          Find your venue or Become a host today
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link 
+            href="/venues" 
+            className="inline-block bg-white text-emerald-700 hover:bg-gray-100 py-4 px-8 rounded-full font-semibold transition duration-300 ease-in-out text-lg"
+          >
+            Find Your Venue
+          </Link>
+          <Link 
+            href="/host/register" 
+            className="inline-block bg-transparent border-2 border-white text-white hover:bg-white hover:text-emerald-700 py-4 px-8 rounded-full font-semibold transition duration-300 ease-in-out text-lg"
+          >
+            Become a Host
+          </Link>
+        </div>
       </div>
     </section>
   </div>
