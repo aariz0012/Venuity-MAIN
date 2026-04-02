@@ -62,10 +62,16 @@ const VenuesPage = () => {
             const userData = await userRes.json();
             setIsHost(userData.isHost || false);
             setIsAdmin(userData.role === 'admin');
+          } else if (userRes.status === 401) {
+            // Token is invalid or expired, remove it
+            localStorage.removeItem('token');
+            setIsHost(false);
+            setIsAdmin(false);
           }
         }
       } catch (err) {
         console.error('Error fetching user data:', err);
+        // On network error, don't change auth state
       }
     };
 
