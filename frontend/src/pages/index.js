@@ -2432,18 +2432,18 @@ export default function Home() {
         </section>
 
         {/* Categories Section */}
-<section className={`${styles.section} ${styles.bgLight}`}>
+<section className={`${styles.section} ${styles.bgLight} ${styles.categoriesSection}`}>
   <div className={styles.container}>
     <div className={styles.sectionHeader}>
       <h2 className={styles.sectionTitle}>Browse by Category</h2>
-      <p className={styles.sectionSubtitle}>Find the perfect venue for any occasion</p>
+      <p className={styles.sectionSubtitle}>Find perfect venue for any occasion</p>
     </div>
     <div className={styles.categoriesGrid}>
       {categories.map((category) => (
         <Link href={`/venues?category=${category.name.toLowerCase()}`} key={category.id}>
           <motion.div 
             className={styles.categoryCard}
-            whileHover={{ y: -5 }}
+            whileHover={{ y: -4, scale: 1.02 }}
             style={{ cursor: 'pointer' }}
           >
             <div className={styles.categoryImage}>
@@ -2455,12 +2455,11 @@ export default function Home() {
                 className={styles.categoryImg}
                 onError={(e) => {
                   console.error('Failed to load image: ${category.image}');
-                  e.target.onerror = null;
-                  e.target.src = '/images/events/default.jpg';
+                  e.target.src = '/images/placeholder-venue.jpg';
                 }}
               />
             </div>
-            <h3>{category.name}</h3>
+            <h3 className={styles.categoryCardTitle}>{category.name}</h3>
           </motion.div>
         </Link>
       ))}
