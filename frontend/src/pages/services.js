@@ -91,46 +91,45 @@ const mockServices = [
 const ServicesPage = () => {
   const [location, setLocation] = useState('');
   const [filteredServices, setFilteredServices] = useState(mockServices);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isDetecting, setIsDetecting] = useState(false);
   const router = useRouter();
 
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const type = params.get('type');
-    if (type) {
-      const filtered = mockServices.filter(service => service.type.toLowerCase().replace(' ', '') === type);
-      setFilteredServices(filtered);
-    } else {
-      setFilteredServices(mockServices);
-    }
-  }, []);
+    filterServices();
+  }, [location, selectedCategory]);
 
-  const handleServiceCategoryClick = async (category) => {
-    try {
-      // Get user location
-      let userLocation = location;
-      
-      if (!userLocation) {
-        // Try to detect location if not already set
-        try {
-          userLocation = await getUserLocation();
-          setLocation(userLocation);
-          toast.success('Location detected successfully!');
-        } catch (error) {
-          toast.info('Using nationwide results. Enable location for better results.');
-        }
-      }
-      
-      // Navigate to category page with location filter
-      const query = userLocation ? { city: userLocation } : {};
-      router.push({
-        pathname: category.href,
-        query
+  const filterServices = () => {
+    let filtered = mockServices;
+    
+    // Filter by category if selected
+    if (selectedCategory) {
+      filtered = filtered.filter(service => {
+        if (selectedCategory === 'caterer') return service.type === 'Caterer';
+        if (selectedCategory === 'decorator') return service.type === 'Decorator';
+        if (selectedCategory === 'planner') return service.type === 'Event Planner';
+        return true;
       });
-    } catch (error) {
-      console.error('Error navigating to category:', error);
-      // Fallback to basic navigation
-      router.push(category.href);
+    }
+    
+    // Filter by location if provided
+    if (location) {
+      filtered = filtered.filter(service => 
+        service.location.toLowerCase().includes(location.toLowerCase())
+      );
+    }
+    
+    setFilteredServices(filtered);
+  };
+
+  const handleServiceCategoryClick = (category) => {
+    // Set selected category to filter providers on same page
+    setSelectedCategory(category.key);
+    
+    // Scroll to service providers section
+    const providersSection = document.getElementById('service-providers');
+    if (providersSection) {
+      providersSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -236,30 +235,33 @@ const ServicesPage = () => {
                 <FiMapPin className="text-xl text-primary-600" />
                 <input
                   type="text"
-      placeholder="Search services by city or state"
-      className="flex-1 border-none outline-none text-gray-800 text-lg bg-transparent"
-      value={location}
-      onChange={(e) => setLocation(e.target.value)}
-    />
-    <button
-      type="button"
-      onClick={detectLocation}
-      disabled={isDetecting}
-      className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-      title="Detect my location"
-    >
-      {isDetecting ? (
-        <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-      ) : (
-        <FiNavigation className="text-primary-600 text-xl" />
-      )}
-    </button>
-    <button
-      type="submit"
-      className="btn-primary flex items-center gap-1"
-      onClick={(e) => e.preventDefault()}
-    >
-      <FiSearch />
+                  placeholder="Search services by city or state"
+                  className="flex-1 border-none outline-none text-gray-800 text-lg bg-transparent"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={isDetecting}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  title="Detect my location"
+                >
+                  {isDetecting ? (
+                    <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <FiNavigation className="text-primary-600 text-xl" />
+                  )}
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary flex items-center gap-1"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    filterServices();
+                  }}
+                >
+                  <FiSearch />
                   Search
                 </button>
               </form>
@@ -268,44 +270,114 @@ const ServicesPage = () => {
         </section>
 
         {/* Service Listings */}
-        <section className="pb-16">
+        <section id="service-providers" className="pb-16">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Available Service Providers</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {filteredServices.map((service) => (
-                <motion.div
-                  key={service.id}
-                  className="card overflow-hidden hover:shadow-lg flex flex-col"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Available Service Providers
+                {selectedCategory && (
+                  <span className="text-lg font-normal text-gray-600 ml-2">
+                    - {serviceCategories.find(cat => cat.key === selectedCategory)?.name}
+                  </span>
+                )}
+              </h2>
+              {selectedCategory && (
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className="text-primary-600 hover:text-primary-700 font-medium"
                 >
-                  <div className="relative h-48 bg-gray-200">
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="w-full h-full object-cover rounded-t-lg"
-                    />
-                    <div className="absolute top-0 right-0 bg-white px-3 py-1 m-2 rounded-full text-sm font-medium text-secondary-600 shadow">
-                      {service.type}
-                    </div>
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">{service.name}</h3>
-                    <div className="flex items-center text-gray-600 mb-2">
-                      <FiMapPin className="mr-1" />
-                      <span>{service.location}</span>
-                    </div>
-                    <p className="text-gray-700 mb-3 flex-1">{service.description}</p>
-                    <div className="flex items-center mb-3">
-                      <span className="text-yellow-500 text-lg">★</span>
-                      <span className="ml-1 font-medium">{service.rating}</span>
-                    </div>
-                    <button className="btn-primary w-full mt-auto">Book Now</button>
-                  </div>
-                </motion.div>
-              ))}
+                  Show All Categories
+                </button>
+              )}
             </div>
+            
+            {filteredServices.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="mb-6">
+                  <FiSearch className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No service providers found
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {selectedCategory 
+                      ? `No ${serviceCategories.find(cat => cat.key === selectedCategory)?.name} providers found in ${location || 'this location'}`
+                      : `No service providers found in ${location || 'this location'}`
+                    }
+                  </p>
+                </div>
+                
+                <div className="max-w-md mx-auto">
+                  <p className="text-gray-700 mb-4">
+                    Try searching for services in a different location:
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter city or state"
+                      className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          filterServices();
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={filterServices}
+                      className="btn-primary"
+                    >
+                      Search
+                    </button>
+                  </div>
+                  
+                  {selectedCategory && (
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className="mt-4 text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      Or show all service providers
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {filteredServices.map((service) => (
+                  <motion.div
+                    key={service.id}
+                    className="card overflow-hidden hover:shadow-lg flex flex-col"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="relative h-48 bg-gray-200">
+                      <img
+                        src={service.image}
+                        alt={service.name}
+                        className="w-full h-full object-cover rounded-t-lg"
+                      />
+                      <div className="absolute top-0 right-0 bg-white px-3 py-1 m-2 rounded-full text-sm font-medium text-secondary-600 shadow">
+                        {service.type}
+                      </div>
+                    </div>
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900">{service.name}</h3>
+                      <div className="flex items-center text-gray-600 mb-2">
+                        <FiMapPin className="mr-1" />
+                        <span>{service.location}</span>
+                      </div>
+                      <p className="text-gray-700 mb-3 flex-1">{service.description}</p>
+                      <div className="flex items-center mb-3">
+                        <span className="text-yellow-500 text-lg">★</span>
+                        <span className="ml-1 font-medium">{service.rating}</span>
+                      </div>
+                      <button className="btn-primary w-full mt-auto">Book Now</button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -313,4 +385,4 @@ const ServicesPage = () => {
   );
 };
 
-export default ServicesPage; 
+export default ServicesPage;
