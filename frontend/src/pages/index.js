@@ -2371,7 +2371,7 @@ export default function Home() {
         <meta name="description" content="Discover and book unique venues for any occasion across India" />
       </Head>
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${styles.homePageBackground}`}>
         {/* Hero Section */}
         <section className={styles.hero}>
           <div className={styles.heroContent}>
