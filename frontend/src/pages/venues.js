@@ -5,7 +5,7 @@ import Layout from '../components/Layout/Layout';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaTimes, FaPlus, FaCheck, FaShoppingCart } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaStar, FaRegCalendarAlt, FaSearch, FaTimes, FaPlus, FaCheck, FaShoppingCart, FaTimesCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 // Static export - no server-side rendering needed
@@ -26,6 +26,9 @@ const VenuesPage = () => {
     startDate: null,
     endDate: null, 
   }, []);
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchDate, setSearchDate] = useState('');
+  const [searchGuests, setSearchGuests] = useState('');
 
   useEffect(() => {
     // Load itinerary from localStorage on component mount
@@ -79,11 +82,40 @@ const VenuesPage = () => {
   }, []);
 
   useEffect(() => {
-    // Get category from URL query parameter
+    // Get search parameters from URL query
     if (router.isReady) {
       const category = router.query.category;
+      const location = router.query.location;
+      const date = router.query.date;
+      const guests = router.query.guests;
+      
       if (category) {
         setSelectedCategory(category);
+      }
+      
+      if (location) {
+        setSearchLocation(location);
+        setSearchQuery(location); // Also set the main search query
+      }
+      
+      if (date) {
+        setSearchDate(date);
+        // Convert to Date object for dateRange if needed
+        try {
+          const dateObj = new Date(date);
+          if (!isNaN(dateObj.getTime())) {
+            setDateRange({
+              startDate: dateObj,
+              endDate: dateObj
+            });
+          }
+        } catch (err) {
+          console.error('Invalid date format:', date);
+        }
+      }
+      
+      if (guests) {
+        setSearchGuests(guests);
       }
     }
   }, [router.isReady, router.query]);
@@ -105,6 +137,20 @@ const VenuesPage = () => {
         // Add category filter if selected
         if (selectedCategory) {
           params.append('venueType', selectedCategory);
+        }
+        
+        // Add search parameters from home page
+        if (searchLocation) {
+          params.append('city', searchLocation);
+        }
+        
+        if (searchGuests) {
+          params.append('minCapacity', searchGuests);
+        }
+        
+        // Also add the main search query if it exists
+        if (searchQuery) {
+          params.append('search', searchQuery);
         }
         
         if (params.toString()) {
@@ -129,7 +175,7 @@ const VenuesPage = () => {
       }
     };
     fetchVenues();
-  }, [showMyVenues, isHost, selectedCategory]);
+  }, [showMyVenues, isHost, selectedCategory, searchLocation, searchGuests, searchQuery]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -137,6 +183,47 @@ const VenuesPage = () => {
     // Filtering can be implemented later
     console.log('Search query:', searchQuery);
     console.log('Date range:', dateRange);
+  };
+
+  // Functions to remove individual search criteria
+  const removeLocationFilter = () => {
+    setSearchLocation('');
+    setSearchQuery('');
+    // Update URL without location parameter and trigger re-fetch
+    const params = new URLSearchParams(router.query);
+    params.delete('location');
+    const newUrl = params.toString() ? `/venues?${params.toString()}` : '/venues';
+    router.push(newUrl);
+  };
+
+  const removeDateFilter = () => {
+    setSearchDate('');
+    setDateRange({ startDate: null, endDate: null });
+    // Update URL without date parameter and trigger re-fetch
+    const params = new URLSearchParams(router.query);
+    params.delete('date');
+    const newUrl = params.toString() ? `/venues?${params.toString()}` : '/venues';
+    router.push(newUrl);
+  };
+
+  const removeGuestsFilter = () => {
+    setSearchGuests('');
+    // Update URL without guests parameter and trigger re-fetch
+    const params = new URLSearchParams(router.query);
+    params.delete('guests');
+    const newUrl = params.toString() ? `/venues?${params.toString()}` : '/venues';
+    router.push(newUrl);
+  };
+
+  // Function to clear all filters
+  const clearAllFilters = () => {
+    setSearchLocation('');
+    setSearchQuery('');
+    setSearchDate('');
+    setSearchGuests('');
+    setDateRange({ startDate: null, endDate: null });
+    setSelectedCategory('');
+    router.push('/venues');
   };
 
   const handleWidenSearch = () => {
@@ -197,7 +284,7 @@ const VenuesPage = () => {
 
   const handleClearCategory = () => {
     setSelectedCategory('');
-    router.push('/venues', undefined, { shallow: true });
+    router.push('/venues');
   };
 
   // Itinerary functions
@@ -450,7 +537,8 @@ const VenuesPage = () => {
                 </div>
               )}
 
-              {/* Search Form */}
+              
+{/* Search Form */}
 {!showMyVenues && (
   <div className="bg-white/20 backdrop-blur-md p-6 rounded-xl shadow-xl border border-white/30">
     <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-end">
@@ -554,17 +642,66 @@ const VenuesPage = () => {
                 <h2 className="text-3xl font-bold text-white">
                   {showMyVenues ? 'My Venues' : 'Available Venues'}
                 </h2>
-                {selectedCategory && !showMyVenues && (
-                  <div className="flex items-center mt-2">
-                    <span className="text-sm text-emerald-100 mr-2">
-                      Category: <span className="font-semibold capitalize">{selectedCategory}</span>
-                    </span>
+                
+                {/* Search Criteria Bar - Single Line */}
+                {(searchLocation || searchDate || searchGuests || selectedCategory) && (
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    {searchLocation && (
+                      <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-white/30">
+                        📍 {searchLocation}
+                        <button
+                          onClick={removeLocationFilter}
+                          className="text-white/80 hover:text-white transition-colors"
+                          title="Remove location filter"
+                        >
+                          <FaTimesCircle size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {searchDate && (
+                      <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-white/30">
+                        📅 {new Date(searchDate).toLocaleDateString()}
+                        <button
+                          onClick={removeDateFilter}
+                          className="text-white/80 hover:text-white transition-colors"
+                          title="Remove date filter"
+                        >
+                          <FaTimesCircle size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {searchGuests && (
+                      <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-white/30">
+                        👥 {searchGuests} Guests
+                        <button
+                          onClick={removeGuestsFilter}
+                          className="text-white/80 hover:text-white transition-colors"
+                          title="Remove guests filter"
+                        >
+                          <FaTimesCircle size={12} />
+                        </button>
+                      </span>
+                    )}
+                    {selectedCategory && !showMyVenues && (
+                      <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-white/30">
+                        Category: <span className="font-semibold capitalize">{selectedCategory}</span>
+                        <button
+                          onClick={handleClearCategory}
+                          className="text-white/80 hover:text-white transition-colors"
+                          title="Clear category filter"
+                        >
+                          <FaTimesCircle size={12} />
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Clear All Button */}
                     <button
-                      onClick={handleClearCategory}
-                      className="text-emerald-200 hover:text-emerald-100 transition-colors"
-                      title="Clear category filter"
+                      onClick={clearAllFilters}
+                      className="text-white/60 hover:text-white/90 text-sm underline transition-colors"
+                      title="Clear all filters"
                     >
-                      <FaTimes size={14} />
+                      Clear All
                     </button>
                   </div>
                 )}
