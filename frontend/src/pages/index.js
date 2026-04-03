@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -272,6 +273,7 @@ const hostTestimonials = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const { user, host } = useAuth();
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
@@ -369,7 +371,27 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Handle search
+    
+    // Build search parameters
+    const params = new URLSearchParams();
+    
+    if (location.trim()) {
+      params.append('location', location.trim());
+    }
+    
+    if (date) {
+      params.append('date', date);
+    }
+    
+    if (guests) {
+      params.append('guests', guests);
+    }
+    
+    // Redirect to venues page with search parameters
+    const queryString = params.toString();
+    const redirectUrl = queryString ? `/venues?${queryString}` : '/venues';
+    
+    router.push(redirectUrl);
   };
 
   const handleSubscribe = (e) => {
