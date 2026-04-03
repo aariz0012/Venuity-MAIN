@@ -161,7 +161,7 @@
   }
 }
 
-/* Categories Section - Enhanced with smooth transitions */
+/* Categories Section - Enhanced with Soft Mesh Glow */
 .section {
   padding: 80px 0;
   position: relative;
@@ -178,9 +178,25 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(79, 70, 229, 0.02) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(79, 70, 229, 0.01) 0%, transparent 50%);
+  background: radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.35) 0%, transparent 70%);
+  filter: blur(80px);
   pointer-events: none;
+  z-index: 0;
+}
+
+.categoriesSection::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 60%);
+  filter: blur(100px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .bgLight {
@@ -208,20 +224,48 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 30px;
   padding: 0 20px;
+  position: relative;
+  z-index: 1;
 }
 
-/* Category Card - Enhanced with iOS/SaaS effects */
-.categoryCard {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Glassmorphism Icon Backdrop */
+.iconBackdrop {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
   border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.categoryCard:hover .iconBackdrop {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Category Card - Enhanced with iOS Double Shadow */
+.categoryCard {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: none;
+  border-radius: 20px;
   padding: 0;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 20px 40px rgba(34, 197, 94, 0.06);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
+  z-index: 1;
+  cursor: pointer;
 }
 
 .categoryCard::before {
@@ -238,6 +282,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
+  border-radius: 20px;
 }
 
 .categoryCard:hover::before {
@@ -245,9 +290,10 @@
 }
 
 .categoryCard:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: rgba(79, 70, 229, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    0 30px 60px rgba(34, 197, 94, 0.1);
 }
 
 .categoryImage {
@@ -273,33 +319,7 @@
   color: #2d3748;
   padding: 0 15px 15px;
 }
-/* Responsive Design */
-@media (max-width: 768px) {
-  .searchContainer {
-    flex-direction: column;
-    max-width: 100%;
-  }
 
-  .searchInput {
-    border-right: none;
-    border-bottom: 1px solid #eee;
-    padding: 12px 15px;
-  }
-
-  .searchButton {
-    padding: 15px;
-    justify-content: center;
-  }
-
-  .hero h1 {
-    font-size: 2.2rem;
-  }
-
-  .categoriesGrid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-  }
-}
 /* How It Works Section */
 .howItWorks {
   display: grid;
