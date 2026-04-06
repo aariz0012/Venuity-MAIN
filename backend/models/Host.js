@@ -56,7 +56,7 @@ const HostSchema = new mongoose.Schema({
   },
   isApproved: {
     type: Boolean,
-    default: false
+    default: true // Auto-approve hosts temporarily
   },
   isVerified: {
     type: Boolean,
@@ -175,7 +175,7 @@ const HostSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    min: 1,
+    min: 0,
     max: 5,
     default: 0
   },
