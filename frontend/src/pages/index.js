@@ -320,8 +320,9 @@ export default function Home() {
   
   const [newVenue, setNewVenue] = useState({
     name: '',
-    location: '',
-    capacity: '',
+    fullAddress: '',
+    seatingCapacity: '',
+    floatingCapacity: '',
     description: '',
     amenities: [],
     spaceTypes: [],
@@ -335,7 +336,8 @@ export default function Home() {
         outsideCateringAllowed: false,
         cateringMandatory: false,
         barService: false
-      }
+      },
+      menuPackages: []
     },
     decoration: {
       decorType: {
@@ -345,9 +347,32 @@ export default function Home() {
       },
       decorPolicy: {
         outsideDecoratorAllowed: false
-      }
+      },
+      basePrices: {
+        standard: '',
+        themeBased: '',
+        premiumFloral: ''
+      },
+      outsideVendorRoyalty: ''
     },
     pricingModel: {
+      selectedModel: '',
+      models: {
+        cateringOnly: {
+          extraPlateCharge: '',
+          serviceCharge: ''
+        },
+        rentPlusCatering: {
+          baseVenueRent: '',
+          includedHours: '',
+          overtimeFee: ''
+        },
+        minimumGuarantee: {
+          thresholdGuestCount: '',
+          penaltyRent: '',
+          waiveForLargeBookings: false
+        }
+      },
       rateType: {
         perPlate: false,
         perDay: false
@@ -367,6 +392,34 @@ export default function Home() {
       gstLicense: []
     },
     images: []
+  });
+
+  // Menu package modal states
+  const [showMenuPackageModal, setShowMenuPackageModal] = useState(false);
+  const [currentMenuPackage, setCurrentMenuPackage] = useState({
+    packageName: '',
+    packageType: 'veg',
+    pricePerPlate: '',
+    minimumGuests: '',
+    welcomeDrinks: '',
+    starters: [],
+    mainCourse: {
+      breads: [],
+      rice: [],
+      gravies: []
+    },
+    desserts: [],
+    liveCounters: {
+      enabled: false,
+      items: []
+    },
+    policies: {
+      venueRentIncluded: false,
+      gstIncluded: false,
+      decorationIncluded: false,
+      waitersIncluded: false,
+      beveragesUnlimited: false
+    }
   });
 
   const handleSearch = (e) => {
@@ -423,20 +476,25 @@ export default function Home() {
     setEditVideos([]);
     setNewVenue({
       name: '',
-      location: '',
-      capacity: '',
+      fullAddress: '',
+      seatingCapacity: '',
+      floatingCapacity: '',
       description: '',
       amenities: [],
       spaceTypes: [],
       images: [],
       foodAndCatering: {
-        foodMenu: { items: [] },
+        foodMenu: { 
+          veg: false,
+          nonVeg: false
+        },
         cateringPolicy: {
           inHouseCatering: false,
           outsideCateringAllowed: false,
           cateringMandatory: false,
           barService: false
-        }
+        },
+        menuPackages: []
       },
       decoration: {
         decorType: {
@@ -446,9 +504,32 @@ export default function Home() {
         },
         decorPolicy: {
           outsideDecoratorAllowed: false
-        }
+        },
+        basePrices: {
+          standard: '',
+          themeBased: '',
+          premiumFloral: ''
+        },
+        outsideVendorRoyalty: ''
       },
       pricingModel: {
+        selectedModel: '',
+        models: {
+          cateringOnly: {
+            extraPlateCharge: '',
+            serviceCharge: ''
+          },
+          rentPlusCatering: {
+            baseVenueRent: '',
+            includedHours: '',
+            overtimeFee: ''
+          },
+          minimumGuarantee: {
+            thresholdGuestCount: '',
+            penaltyRent: '',
+            waiveForLargeBookings: false
+          }
+        },
         rateType: {
           perPlate: false,
           perDay: false
@@ -586,6 +667,55 @@ export default function Home() {
     }));
   };
 
+  const handleDecorBasePriceChange = (tier, value) => {
+    setNewVenue(prev => ({
+      ...prev,
+      decoration: {
+        ...prev.decoration,
+        basePrices: {
+          ...prev.decoration.basePrices,
+          [tier]: value
+        }
+      }
+    }));
+  };
+
+  const handleOutsideVendorRoyaltyChange = (value) => {
+    setNewVenue(prev => ({
+      ...prev,
+      decoration: {
+        ...prev.decoration,
+        outsideVendorRoyalty: value
+      }
+    }));
+  };
+
+  const handlePricingModelSelect = (modelType) => {
+    setNewVenue(prev => ({
+      ...prev,
+      pricingModel: {
+        ...prev.pricingModel,
+        selectedModel: prev.pricingModel.selectedModel === modelType ? '' : modelType
+      }
+    }));
+  };
+
+  const handleModelFieldChange = (modelType, field, value) => {
+    setNewVenue(prev => ({
+      ...prev,
+      pricingModel: {
+        ...prev.pricingModel,
+        models: {
+          ...prev.pricingModel.models,
+          [modelType]: {
+            ...prev.pricingModel.models[modelType],
+            [field]: value
+          }
+        }
+      }
+    }));
+  };
+
   const handleRateTypeToggle = (rateType) => {
     setNewVenue(prev => ({
       ...prev,
@@ -608,6 +738,150 @@ export default function Home() {
           ...prev.pricingModel.prices,
           [priceField]: value
         }
+      }
+    }));
+  };
+
+  // Menu package handlers
+  const handleOpenMenuPackageModal = () => {
+    setShowMenuPackageModal(true);
+  };
+
+  const handleCloseMenuPackageModal = () => {
+    setShowMenuPackageModal(false);
+    // Reset current menu package
+    setCurrentMenuPackage({
+      packageName: '',
+      packageType: 'veg',
+      pricePerPlate: '',
+      minimumGuests: '',
+      welcomeDrinks: '',
+      starters: [],
+      mainCourse: {
+        breads: [],
+        rice: [],
+        gravies: []
+      },
+      desserts: [],
+      liveCounters: {
+        enabled: false,
+        items: []
+      },
+      policies: {
+        venueRentIncluded: false,
+        gstIncluded: false,
+        decorationIncluded: false,
+        waitersIncluded: false,
+        beveragesUnlimited: false
+      }
+    });
+  };
+
+  const handleMenuPackageChange = (field, value) => {
+    setCurrentMenuPackage(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleMenuPackageNestedChange = (parent, child, value) => {
+    setCurrentMenuPackage(prev => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent],
+        [child]: value
+      }
+    }));
+  };
+
+  const handleMenuPackagePolicyToggle = (policy) => {
+    setCurrentMenuPackage(prev => ({
+      ...prev,
+      policies: {
+        ...prev.policies,
+        [policy]: !prev.policies[policy]
+      }
+    }));
+  };
+
+  const handleAddArrayItem = (field, item) => {
+    if (item.trim()) {
+      setCurrentMenuPackage(prev => ({
+        ...prev,
+        [field]: [...prev[field], item.trim()]
+      }));
+    }
+  };
+
+  const handleRemoveArrayItem = (field, index) => {
+    setCurrentMenuPackage(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddNestedArrayItem = (parent, child, item) => {
+    if (item.trim()) {
+      setCurrentMenuPackage(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: [...prev[parent][child], item.trim()]
+        }
+      }));
+    }
+  };
+
+  const handleRemoveNestedArrayItem = (parent, child, index) => {
+    setCurrentMenuPackage(prev => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent],
+        [child]: prev[parent][child].filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const handleSaveMenuPackage = () => {
+    // Validation
+    if (!currentMenuPackage.packageName.trim()) {
+      alert('Please enter a package name');
+      return;
+    }
+    if (!currentMenuPackage.pricePerPlate || currentMenuPackage.pricePerPlate <= 0) {
+      alert('Please enter a valid price per plate');
+      return;
+    }
+    if (!currentMenuPackage.minimumGuests || currentMenuPackage.minimumGuests <= 0) {
+      alert('Please enter a valid minimum guest guarantee');
+      return;
+    }
+
+    // Add the menu package to the venue
+    const newPackage = {
+      ...currentMenuPackage,
+      id: Date.now().toString(),
+      pricePerPlate: parseFloat(currentMenuPackage.pricePerPlate),
+      minimumGuests: parseInt(currentMenuPackage.minimumGuests)
+    };
+
+    setNewVenue(prev => ({
+      ...prev,
+      foodAndCatering: {
+        ...prev.foodAndCatering,
+        menuPackages: [...prev.foodAndCatering.menuPackages, newPackage]
+      }
+    }));
+
+    handleCloseMenuPackageModal();
+  };
+
+  const handleDeleteMenuPackage = (packageId) => {
+    setNewVenue(prev => ({
+      ...prev,
+      foodAndCatering: {
+        ...prev.foodAndCatering,
+        menuPackages: prev.foodAndCatering.menuPackages.filter(pkg => pkg.id !== packageId)
       }
     }));
   };
@@ -766,12 +1040,61 @@ export default function Home() {
     
     setNewVenue({
       name: venue.name,
-      location: venue.location,
-      capacity: venue.capacity,
+      fullAddress: venue.fullAddress || venue.location, // Fallback for existing venues
+      seatingCapacity: venue.seatingCapacity || venue.capacity, // Fallback for existing venues
+      floatingCapacity: venue.floatingCapacity || venue.capacity, // Fallback for existing venues
       description: venue.description,
       amenities: venue.amenities,
       spaceTypes: venue.spaceTypes || [],
-      images: venue.images
+      images: venue.images,
+      decoration: venue.decoration || {
+        decorType: {
+          standard: false,
+          themeBased: false,
+          premiumFloral: false
+        },
+        decorPolicy: {
+          outsideDecoratorAllowed: false
+        },
+        basePrices: {
+          standard: '',
+          themeBased: '',
+          premiumFloral: ''
+        },
+        outsideVendorRoyalty: ''
+      },
+      pricingModel: venue.pricingModel || {
+        selectedModel: '',
+        models: {
+          cateringOnly: {
+            extraPlateCharge: '',
+            serviceCharge: ''
+          },
+          rentPlusCatering: {
+            baseVenueRent: '',
+            includedHours: '',
+            overtimeFee: ''
+          },
+          minimumGuarantee: {
+            thresholdGuestCount: '',
+            penaltyRent: '',
+            waiveForLargeBookings: false
+          }
+        },
+        rateType: {
+          perPlate: false,
+          perDay: false
+        },
+        prices: {
+          vegPlatePrice: '',
+          nonVegPlatePrice: '',
+          perDayPrice: '',
+          vegPlateMin: '',
+          vegPlateMax: '',
+          nonVegPlateMin: '',
+          nonVegPlateMax: ''
+        }
+      }
     });
     setShowVenueDialog(true);
   };
@@ -1298,78 +1621,24 @@ export default function Home() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location *
+                        Full Address *
                       </label>
-                      <div className="relative">
+                      <div className="flex space-x-2">
                         <input
                           type="text"
                           required
-                          value={newVenue.location}
-                          onChange={(e) => handleVenueInputChange('location', e.target.value)}
-                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Mumbai, India"
+                          value={newVenue.fullAddress}
+                          onChange={(e) => handleVenueInputChange('fullAddress', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="123 Main Street, City, State, PIN Code"
                         />
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            if (navigator.geolocation) {
-                              navigator.geolocation.getCurrentPosition(
-                                async (position) => {
-                                  try {
-                                    const { latitude, longitude } = position.coords;
-                                    
-                                    // Use OpenStreetMap Nominatim API for reverse geocoding (free)
-                                    const response = await fetch(
-                                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-                                      {
-                                        headers: {
-                                          'User-Agent': 'Venuity Venue App'
-                                        }
-                                      }
-                                    );
-                                    
-                                    if (response.ok) {
-                                      const data = await response.json();
-                                      const address = data.display_name || data.address?.city || data.address?.town || 'Unknown Location';
-                                      handleVenueInputChange('location', address);
-                                    } else {
-                                      // Fallback to coordinates if API fails
-                                      handleVenueInputChange('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-                                    }
-                                  } catch (error) {
-                                    console.error('Error getting address:', error);
-                                    // Fallback to coordinates
-                                    const { latitude, longitude } = position.coords;
-                                    handleVenueInputChange('location', `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-                                  }
-                                },
-                                (error) => {
-                                  console.error('Error getting location:', error);
-                                  let errorMessage = 'Unable to detect location. Please enter manually.';
-                                  
-                                  switch(error.code) {
-                                    case error.PERMISSION_DENIED:
-                                      errorMessage = 'Location access denied. Please enable location permissions.';
-                                      break;
-                                    case error.POSITION_UNAVAILABLE:
-                                      errorMessage = 'Location information unavailable. Please enter manually.';
-                                      break;
-                                    case error.TIMEOUT:
-                                      errorMessage = 'Location request timed out. Please try again.';
-                                      break;
-                                  }
-                                  
-                                  alert(errorMessage);
-                                }
-                              );
-                            } else {
-                              alert('Geolocation is not supported by this browser.');
-                            }
-                          }}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
-                          title="Use my current location"
+                        <button
+                          type="button"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                          title="Pin on Map"
                         >
-                          <FiNavigation className="h-5 w-5" />
+                          <FiMapPin size={16} />
+                          <span className="hidden sm:inline">Pin on Map</span>
                         </button>
                       </div>
                     </div>
@@ -1378,18 +1647,35 @@ export default function Home() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Capacity *
+                        Seating Capacity *
                       </label>
                       <input
                         type="number"
                         required
                         min="1"
                         max="1000"
-                        value={newVenue.capacity}
-                        onChange={(e) => handleVenueInputChange('capacity', e.target.value)}
+                        value={newVenue.seatingCapacity}
+                        onChange={(e) => handleVenueInputChange('seatingCapacity', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="300"
+                        placeholder="200"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Number of guests that can be seated</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Floating Capacity *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        max="2000"
+                        value={newVenue.floatingCapacity}
+                        onChange={(e) => handleVenueInputChange('floatingCapacity', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="400"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Total guests including standing/cocktail setup</p>
                     </div>
                   </div>
 
@@ -1397,13 +1683,23 @@ export default function Home() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Description
                     </label>
-                    <textarea
-                      value={newVenue.description}
-                      onChange={(e) => handleVenueInputChange('description', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows="4"
-                      placeholder="Describe your venue, its features, and what makes it special..."
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={newVenue.description}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 500) {
+                            handleVenueInputChange('description', e.target.value);
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        rows="4"
+                        placeholder="Describe your venue, its features, and what makes it special..."
+                        maxLength={500}
+                      />
+                      <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                        {newVenue.description.length}/500
+                      </div>
+                    </div>
                   </div>
 
                   {/* Space Type */}
@@ -1520,6 +1816,7 @@ export default function Home() {
                             <h4 className="text-lg font-semibold text-gray-800">Food Menu</h4>
                             <button
                               type="button"
+                              onClick={handleOpenMenuPackageModal}
                               className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
                             >
                               <FiPlus size={14} />
@@ -1543,6 +1840,63 @@ export default function Home() {
                             ))}
                           </div>
                         </div>
+
+                          {/* Menu Packages Display */}
+                          {newVenue.foodAndCatering.menuPackages && newVenue.foodAndCatering.menuPackages.length > 0 && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="text-sm font-medium text-gray-700">Added Menu Packages:</h5>
+                              {newVenue.foodAndCatering.menuPackages.map((pkg, index) => (
+                                <div key={pkg.id} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <div className="flex items-center space-x-2">
+                                        <h6 className="font-medium text-gray-900">{pkg.packageName}</h6>
+                                        <span className={`px-2 py-1 text-xs rounded-full ${
+                                          pkg.packageType === 'veg' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                        }`}>
+                                          {pkg.packageType === 'veg' ? '🌱 Veg' : '🍖 Non-Veg'}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        ₹{pkg.pricePerPlate}/plate | Min {pkg.minimumGuests} guests
+                                      </p>
+                                      <div className="flex flex-wrap gap-1 mt-2">
+                                        {pkg.starters.length > 0 && (
+                                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                            {pkg.starters.length} Starters
+                                          </span>
+                                        )}
+                                        {pkg.mainCourse.breads.length > 0 && (
+                                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                                            {pkg.mainCourse.breads.length} Breads
+                                          </span>
+                                        )}
+                                        {pkg.desserts.length > 0 && (
+                                          <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded">
+                                            {pkg.desserts.length} Desserts
+                                          </span>
+                                        )}
+                                        {pkg.liveCounters.enabled && (
+                                          <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                            Live Counter
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteMenuPackage(pkg.id)}
+                                      className="text-red-500 hover:text-red-700 ml-2"
+                                    >
+                                      <FiX size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
                         {/* Catering Policy Section */}
                         <div>
@@ -1577,36 +1931,58 @@ export default function Home() {
                         {/* Decor Type Section */}
                         <div>
                           <h4 className="text-lg font-semibold text-gray-800 mb-4">Decor Type</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="space-y-4">
                             {[
                               { 
                                 key: 'standard', 
                                 label: 'Standard',
-                                description: 'Basic seating and lighting'
+                                description: 'Basic white covers and stage lighting',
+                                placeholder: '0'
                               },
                               { 
                                 key: 'themeBased', 
                                 label: 'Theme Based',
-                                description: 'Specific Setups'
+                                description: 'Themed decorations with custom props and lighting',
+                                placeholder: '20000'
                               },
                               { 
                                 key: 'premiumFloral', 
                                 label: 'Premium Floral',
-                                description: 'High-end floral and stage production'
+                                description: 'High-end floral arrangements and premium stage production',
+                                placeholder: '50000'
                               }
                             ].map((item) => (
-                              <label key={item.key} className="flex items-start space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newVenue.decoration.decorType[item.key]}
-                                  onChange={() => handleDecorTypeToggle(item.key)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                                />
-                                <div>
-                                  <span className="text-sm text-gray-700">{item.label}</span>
-                                  <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                              <div key={item.key} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-start space-x-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={newVenue.decoration.decorType[item.key]}
+                                    onChange={() => handleDecorTypeToggle(item.key)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                                        <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                                      </div>
+                                      <div className="ml-4">
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Base Price (₹)</label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="1000"
+                                          value={newVenue.decoration.basePrices[item.key]}
+                                          onChange={(e) => handleDecorBasePriceChange(item.key, e.target.value)}
+                                          className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                          placeholder={item.placeholder}
+                                          disabled={!newVenue.decoration.decorType[item.key]}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
-                              </label>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -1614,20 +1990,49 @@ export default function Home() {
                         {/* Decor Policy Section */}
                         <div>
                           <h4 className="text-lg font-semibold text-gray-800 mb-4">Decor Policy</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {[
-                              { key: 'outsideDecoratorAllowed', label: 'Outside Decorator Allowed' }
-                            ].map((policy) => (
-                              <label key={policy.key} className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newVenue.decoration.decorPolicy[policy.key]}
-                                  onChange={() => handleDecorPolicyToggle(policy.key)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">{policy.label}</span>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {[
+                                { key: 'outsideDecoratorAllowed', label: 'Outside Decorator Allowed' }
+                              ].map((policy) => (
+                                <label key={policy.key} className="flex items-center space-x-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={newVenue.decoration.decorPolicy[policy.key]}
+                                    onChange={() => handleDecorPolicyToggle(policy.key)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm text-gray-700">{policy.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                            
+                            {/* Outside Vendor Royalty */}
+                            <div className={`border border-gray-200 rounded-lg p-4 ${!newVenue.decoration.decorPolicy.outsideDecoratorAllowed ? 'bg-gray-100' : 'bg-gray-50'}`}>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Outside Vendor Royalty Fee
                               </label>
-                            ))}
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-500">₹</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="1000"
+                                  value={newVenue.decoration.outsideVendorRoyalty}
+                                  onChange={(e) => handleOutsideVendorRoyaltyChange(e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="5000"
+                                  disabled={!newVenue.decoration.decorPolicy.outsideDecoratorAllowed}
+                                />
+                                <span className="text-sm text-gray-500">if guest brings their own decorator</span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                {newVenue.decoration.decorPolicy.outsideDecoratorAllowed 
+                                  ? "This fee is charged when clients prefer to bring their own decorator instead of using your in-house services."
+                                  : "Enable 'Outside Decorator Allowed' to set a royalty fee for external decorators."
+                                }
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1638,183 +2043,237 @@ export default function Home() {
                   {currentStep === 4 && !editingVenue && (
                     <>
                       <div className="space-y-6">
-                        {/* Rate Type Section */}
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-800 mb-4">Rate Type</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {[
-                              { key: 'perPlate', label: 'Per Plate' },
-                              { key: 'perDay', label: 'Per Day' }
-                            ].map((item) => (
-                              <label key={item.key} className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newVenue.pricingModel.rateType[item.key]}
-                                  onChange={() => handleRateTypeToggle(item.key)}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-700">{item.label}</span>
-                              </label>
-                            ))}
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Choose Your Pricing Model</h4>
+                        
+                        {/* Pricing Model Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* Model A: Catering-Only */}
+                          {(!newVenue.foodAndCatering.cateringPolicy.cateringMandatory) && (
+                            <div 
+                              className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                                newVenue.pricingModel.selectedModel === 'cateringOnly' 
+                                  ? 'border-blue-500 bg-blue-50 shadow-lg' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }`}
+                              onClick={() => handlePricingModelSelect('cateringOnly')}
+                            >
+                              <div className="text-center">
+                                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                  <FiUsers className="text-green-600 text-xl" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Catering-Only</h3>
+                                <p className="text-sm text-gray-600 mb-4">Simple & Straightforward</p>
+                                <div className="text-xs text-gray-500 space-y-1">
+                                  <p>• Extra plate charges</p>
+                                  <p>• Service fees</p>
+                                  <p>• Perfect for pure caterers</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Model B: Rent + Catering */}
+                          <div 
+                            className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                              newVenue.pricingModel.selectedModel === 'rentPlusCatering' 
+                                ? 'border-blue-500 bg-blue-50 shadow-lg' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                            onClick={() => handlePricingModelSelect('rentPlusCatering')}
+                          >
+                            <div className="text-center">
+                              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <FiHome className="text-purple-600 text-xl" />
+                              </div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">Rent + Catering</h3>
+                              <p className="text-sm text-gray-600 mb-4">Premium Experience</p>
+                              <div className="text-xs text-gray-500 space-y-1">
+                                <p>• Base venue rent</p>
+                                <p>• Included hours</p>
+                                <p>• Overtime fees</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Model C: Minimum Guarantee */}
+                          <div 
+                            className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                              newVenue.pricingModel.selectedModel === 'minimumGuarantee' 
+                                ? 'border-blue-500 bg-blue-50 shadow-lg' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                            onClick={() => handlePricingModelSelect('minimumGuarantee')}
+                          >
+                            <div className="text-center">
+                              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <FiShield className="text-orange-600 text-xl" />
+                              </div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">Minimum Guarantee</h3>
+                              <p className="text-sm text-gray-600 mb-4">Banquet Bestseller</p>
+                              <div className="text-xs text-gray-500 space-y-1">
+                                <p>• Threshold guest count</p>
+                                <p>• Penalty rent</p>
+                                <p>• Free venue option</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Conditional Price Inputs */}
-                        {newVenue.pricingModel.rateType.perPlate && (
-                          <div className="space-y-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="relative">
-                                <i 
-                                  className="text-gray-400 cursor-help text-sm"
-                                  onMouseEnter={() => setTooltip('perPlate')}
-                                  onMouseLeave={() => setTooltip('')}
-                                >
-                                  (i)
-                                </i>
-                                {tooltip === 'perPlate' && (
-                                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                                    Includes Both Food + Venue<br/>
-                                  </div>
-                                )}
-                              </div>
-                              <h4 className="text-lg font-semibold text-gray-800 mb-4">Per Plate Pricing</h4>
-                            </div>
-                            <div className="space-y-6">
-                              {/* Veg Plate Pricing */}
-                              <div>
-                                <h5 className="text-md font-medium text-gray-700 mb-3">Veg Plate</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Price
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.vegPlatePrice}
-                                      onChange={(e) => handlePriceChange('vegPlatePrice', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Min
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.vegPlateMin}
-                                      onChange={(e) => handlePriceChange('vegPlateMin', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Max
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.vegPlateMax}
-                                      onChange={(e) => handlePriceChange('vegPlateMax', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Non-Veg Plate Pricing */}
-                              <div>
-                                <h5 className="text-md font-medium text-gray-700 mb-3">Non-Veg Plate</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Price
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.nonVegPlatePrice}
-                                      onChange={(e) => handlePriceChange('nonVegPlatePrice', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Min
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.nonVegPlateMin}
-                                      onChange={(e) => handlePriceChange('nonVegPlateMin', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                      Max
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={newVenue.pricingModel.prices.nonVegPlateMax}
-                                      onChange={(e) => handlePriceChange('nonVegPlateMax', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                      placeholder="0.00"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {newVenue.pricingModel.rateType.perDay && (
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <div className="relative">
-                                <i 
-                                  className="text-gray-400 cursor-help text-sm"
-                                  onMouseEnter={() => setTooltip('perDay')}
-                                  onMouseLeave={() => setTooltip('')}
-                                >
-                                  (i)
-                                </i>
-                                {tooltip === 'perDay' && (
-                                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                                    Price is Just for the Space
-                                  </div>
-                                )}
-                              </div>
-                              <h4 className="text-lg font-semibold text-gray-800 mb-4">Per Day Pricing</h4>
-                            </div>
+                        {/* Conditional Model Fields */}
+                        {newVenue.pricingModel.selectedModel === 'cateringOnly' && (
+                          <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Catering-Only Model Settings</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Price Per Day
+                                  Extra Plate Charge (%)
                                 </label>
                                 <input
                                   type="number"
                                   min="0"
-                                  step="0.01"
-                                  value={newVenue.pricingModel.prices.perDayPrice}
-                                  onChange={(e) => handlePriceChange('perDayPrice', e.target.value)}
+                                  max="200"
+                                  step="5"
+                                  value={newVenue.pricingModel.models.cateringOnly.extraPlateCharge}
+                                  onChange={(e) => handleModelFieldChange('cateringOnly', 'extraPlateCharge', e.target.value)}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder="0.00"
+                                  placeholder="110"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Charge % for plates over booked amount</p>
                               </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Service Charge (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="30"
+                                  step="0.5"
+                                  value={newVenue.pricingModel.models.cateringOnly.serviceCharge}
+                                  onChange={(e) => handleModelFieldChange('cateringOnly', 'serviceCharge', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="5"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Staff service fee percentage</p>
+                              </div>
+                            </div>
+                            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                              <p className="text-sm font-medium text-blue-900 mb-2">💰 Pricing Logic:</p>
+                              <p className="text-sm text-blue-800">Total = (Selected Plate Price × Guests) + Service Charge</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {newVenue.pricingModel.selectedModel === 'rentPlusCatering' && (
+                          <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Rent + Catering Model Settings</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Base Venue Rent (₹)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="10000"
+                                  value={newVenue.pricingModel.models.rentPlusCatering.baseVenueRent}
+                                  onChange={(e) => handleModelFieldChange('rentPlusCatering', 'baseVenueRent', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="100000"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">e.g., ₹1,00,000</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Included Hours
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="24"
+                                  value={newVenue.pricingModel.models.rentPlusCatering.includedHours}
+                                  onChange={(e) => handleModelFieldChange('rentPlusCatering', 'includedHours', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="6"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Price covers X hours</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Overtime Fee (₹/hour)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="1000"
+                                  value={newVenue.pricingModel.models.rentPlusCatering.overtimeFee}
+                                  onChange={(e) => handleModelFieldChange('rentPlusCatering', 'overtimeFee', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="10000"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Per hour after included time</p>
+                              </div>
+                            </div>
+                            <div className="mt-4 p-4 bg-purple-50 rounded-lg">
+                              <p className="text-sm font-medium text-purple-900 mb-2">💰 Pricing Logic:</p>
+                              <p className="text-sm text-purple-800">Total = Base Rent + (Plate Price × Guests)</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {newVenue.pricingModel.selectedModel === 'minimumGuarantee' && (
+                          <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4">Minimum Guarantee Model Settings</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Threshold Guest Count
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  step="10"
+                                  value={newVenue.pricingModel.models.minimumGuarantee.thresholdGuestCount}
+                                  onChange={(e) => handleModelFieldChange('minimumGuarantee', 'thresholdGuestCount', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="150"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Minimum guests for free venue</p>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Penalty Rent (₹)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="5000"
+                                  value={newVenue.pricingModel.models.minimumGuarantee.penaltyRent}
+                                  onChange={(e) => handleModelFieldChange('minimumGuarantee', 'penaltyRent', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="25000"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">If guests below threshold</p>
+                              </div>
+                            </div>
+                            <div className="mt-4">
+                              <label className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={newVenue.pricingModel.models.minimumGuarantee.waiveForLargeBookings}
+                                  onChange={(e) => handleModelFieldChange('minimumGuarantee', 'waiveForLargeBookings', e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm font-medium text-gray-700">Free Venue for Large Bookings</span>
+                              </label>
+                              <p className="text-xs text-gray-500 mt-1 ml-7">Waive venue rent completely for bookings above threshold</p>
+                            </div>
+                            <div className="mt-4 p-4 bg-orange-50 rounded-lg">
+                              <p className="text-sm font-medium text-orange-900 mb-2">💰 Pricing Logic:</p>
+                              <p className="text-sm text-orange-800">
+                                If Guests &lt; Threshold: (Plate Price × Guests) + Penalty Rent<br/>
+                                If Guests ≥ Threshold: (Plate Price × Guests) + 0 Rent
+                              </p>
                             </div>
                           </div>
                         )}
@@ -2241,6 +2700,534 @@ export default function Home() {
               </motion.div>
             </div>
           )}
+
+        {/* Menu Package Modal */}
+        {showMenuPackageModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div 
+              className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Add Menu Package</h2>
+                <button 
+                  onClick={handleCloseMenuPackageModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Basic Package Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Package Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Package Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={currentMenuPackage.packageName}
+                        onChange={(e) => handleMenuPackageChange('packageName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Royal Wedding Feast"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Package Type *
+                      </label>
+                      <div className="flex space-x-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="veg"
+                            checked={currentMenuPackage.packageType === 'veg'}
+                            onChange={(e) => handleMenuPackageChange('packageType', e.target.value)}
+                            className="mr-2"
+                          />
+                          <span>🌱 Vegetarian</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="nonVeg"
+                            checked={currentMenuPackage.packageType === 'nonVeg'}
+                            onChange={(e) => handleMenuPackageChange('packageType', e.target.value)}
+                            className="mr-2"
+                          />
+                          <span>🍖 Non-Vegetarian</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price Per Plate (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={currentMenuPackage.pricePerPlate}
+                        onChange={(e) => handleMenuPackageChange('pricePerPlate', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum Guest Guarantee *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={currentMenuPackage.minimumGuests}
+                        onChange={(e) => handleMenuPackageChange('minimumGuests', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Item Categorization */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Menu Item Categorization</h3>
+                  
+                  {/* Welcome Drinks */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Welcome Drinks/Appetizers
+                    </label>
+                    <textarea
+                      value={currentMenuPackage.welcomeDrinks}
+                      onChange={(e) => handleMenuPackageChange('welcomeDrinks', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows="2"
+                      placeholder="e.g., Blue Lagoon, Masala Chai, Fresh Lime Soda"
+                    />
+                  </div>
+
+                  {/* Starters */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Starters
+                    </label>
+                    <div className="space-y-2">
+                      {currentMenuPackage.starters.map((starter, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={starter}
+                            onChange={(e) => {
+                              const newStarters = [...currentMenuPackage.starters];
+                              newStarters[index] = e.target.value;
+                              handleMenuPackageChange('starters', newStarters);
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter starter item"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveArrayItem('starters', index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FiX size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Add new starter"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddArrayItem('starters', e.target.value);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            const input = e.target.previousElementSibling;
+                            handleAddArrayItem('starters', input.value);
+                            input.value = '';
+                          }}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <FiPlus size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Course */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Main Course
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Breads */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Breads</label>
+                        <div className="space-y-1">
+                          {currentMenuPackage.mainCourse.breads.map((bread, index) => (
+                            <div key={index} className="flex items-center space-x-1">
+                              <input
+                                type="text"
+                                value={bread}
+                                onChange={(e) => {
+                                  const newBreads = [...currentMenuPackage.mainCourse.breads];
+                                  newBreads[index] = e.target.value;
+                                  handleMenuPackageNestedChange('mainCourse', 'breads', newBreads);
+                                }}
+                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Bread item"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNestedArrayItem('mainCourse', 'breads', index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <FiX size={12} />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="text"
+                              placeholder="Add bread"
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleAddNestedArrayItem('mainCourse', 'breads', e.target.value);
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const input = e.target.previousElementSibling;
+                                handleAddNestedArrayItem('mainCourse', 'breads', input.value);
+                                input.value = '';
+                              }}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              <FiPlus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Rice */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Rice</label>
+                        <div className="space-y-1">
+                          {currentMenuPackage.mainCourse.rice.map((rice, index) => (
+                            <div key={index} className="flex items-center space-x-1">
+                              <input
+                                type="text"
+                                value={rice}
+                                onChange={(e) => {
+                                  const newRice = [...currentMenuPackage.mainCourse.rice];
+                                  newRice[index] = e.target.value;
+                                  handleMenuPackageNestedChange('mainCourse', 'rice', newRice);
+                                }}
+                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Rice item"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNestedArrayItem('mainCourse', 'rice', index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <FiX size={12} />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="text"
+                              placeholder="Add rice dish"
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleAddNestedArrayItem('mainCourse', 'rice', e.target.value);
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const input = e.target.previousElementSibling;
+                                handleAddNestedArrayItem('mainCourse', 'rice', input.value);
+                                input.value = '';
+                              }}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              <FiPlus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Gravies */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Gravies/Dal</label>
+                        <div className="space-y-1">
+                          {currentMenuPackage.mainCourse.gravies.map((gravy, index) => (
+                            <div key={index} className="flex items-center space-x-1">
+                              <input
+                                type="text"
+                                value={gravy}
+                                onChange={(e) => {
+                                  const newGravies = [...currentMenuPackage.mainCourse.gravies];
+                                  newGravies[index] = e.target.value;
+                                  handleMenuPackageNestedChange('mainCourse', 'gravies', newGravies);
+                                }}
+                                className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Gravy item"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNestedArrayItem('mainCourse', 'gravies', index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <FiX size={12} />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="text"
+                              placeholder="Add gravy"
+                              className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleAddNestedArrayItem('mainCourse', 'gravies', e.target.value);
+                                  e.target.value = '';
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const input = e.target.previousElementSibling;
+                                handleAddNestedArrayItem('mainCourse', 'gravies', input.value);
+                                input.value = '';
+                              }}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              <FiPlus size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desserts */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Desserts
+                    </label>
+                    <div className="space-y-2">
+                      {currentMenuPackage.desserts.map((dessert, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={dessert}
+                            onChange={(e) => {
+                              const newDesserts = [...currentMenuPackage.desserts];
+                              newDesserts[index] = e.target.value;
+                              handleMenuPackageChange('desserts', newDesserts);
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter dessert item"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveArrayItem('desserts', index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FiX size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Add new dessert"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddArrayItem('desserts', e.target.value);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            const input = e.target.previousElementSibling;
+                            handleAddArrayItem('desserts', input.value);
+                            input.value = '';
+                          }}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <FiPlus size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live Counters */}
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.liveCounters.enabled}
+                        onChange={(e) => handleMenuPackageNestedChange('liveCounters', 'enabled', e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label className="text-sm font-medium text-gray-700">
+                        Live Counters Available (Additional Charge)
+                      </label>
+                    </div>
+                    {currentMenuPackage.liveCounters.enabled && (
+                      <div className="space-y-2">
+                        {currentMenuPackage.liveCounters.items.map((item, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={item}
+                              onChange={(e) => {
+                                const newItems = [...currentMenuPackage.liveCounters.items];
+                                newItems[index] = e.target.value;
+                                handleMenuPackageNestedChange('liveCounters', 'items', newItems);
+                              }}
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="e.g., Live Pasta Counter"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNestedArrayItem('liveCounters', 'items', index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FiX size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            placeholder="Add live counter item"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAddNestedArrayItem('liveCounters', 'items', e.target.value);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              const input = e.target.previousElementSibling;
+                              handleAddNestedArrayItem('liveCounters', 'items', input.value);
+                              input.value = '';
+                            }}
+                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <FiPlus size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Policy & What's Included */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Policy & What's Included?</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.policies.venueRentIncluded}
+                        onChange={() => handleMenuPackagePolicyToggle('venueRentIncluded')}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Venue rent included in plate price</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.policies.gstIncluded}
+                        onChange={() => handleMenuPackagePolicyToggle('gstIncluded')}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">GST included</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.policies.decorationIncluded}
+                        onChange={() => handleMenuPackagePolicyToggle('decorationIncluded')}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Basic floral/lighting decor included</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.policies.waitersIncluded}
+                        onChange={() => handleMenuPackagePolicyToggle('waitersIncluded')}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Service staff charges included</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={currentMenuPackage.policies.beveragesUnlimited}
+                        onChange={() => handleMenuPackagePolicyToggle('beveragesUnlimited')}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Water and soft drinks unlimited</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex justify-end space-x-4 pt-6 border-t">
+                <button
+                  type="button"
+                  onClick={handleCloseMenuPackageModal}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMenuPackage}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save Menu Package
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         {/* Venue Detail Modal */}
         {selectedVenue && (
