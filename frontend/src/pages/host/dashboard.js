@@ -27,6 +27,11 @@ const HostDashboard = () => {
   const [confirmedBookings, setConfirmedBookings] = useState([]);
   const [upcomingBookings, setUpcomingBookings] = useState([]);
   
+  const [upiVerificationLoading, setUpiVerificationLoading] = useState(false);
+  const [registeredName, setRegisteredName] = useState('');
+  const [upiError, setUpiError] = useState('');
+  const [showShakeAnimation, setShowShakeAnimation] = useState(false);
+  
   // Settings states
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState('profile');
@@ -68,6 +73,18 @@ const HostDashboard = () => {
     
     // Business & Financial
     payoutMethod: '',
+    bankDetails: {
+      accountNumber: '',
+      ifscCode: '',
+      accountHolderName: '',
+      bankName: ''
+    },
+    upiDetails: {
+      upiId: '',
+      verified: false,
+      verifiedName: '',
+      verificationStatus: 'pending'
+    },
     gstEnabled: false,
     gstNumber: '',
     cancellationPolicy: 'moderate',
@@ -141,6 +158,84 @@ const HostDashboard = () => {
     setShowSettingsDialog(false);
   };
 
+  const handleVerifyUpi = async () => {
+    if (!settings.upiDetails.upiId) {
+      setUpiError('Please enter a UPI ID first');
+      triggerShakeAnimation();
+      return;
+    }
+
+    // Clear previous errors
+    setUpiError('');
+    setRegisteredName('');
+    setUpiVerificationLoading(true);
+    
+    try {
+      const response = await fetch('/api/v1/host/verify-upi', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          upiId: settings.upiDetails.upiId
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Success case - update all relevant states
+        setRegisteredName(data.data.registeredName);
+        setSettings(prev => ({
+          ...prev,
+          upiDetails: {
+            ...prev.upiDetails,
+            verified: true,
+            verifiedName: data.data.registeredName,
+            verificationStatus: 'verified'
+          }
+        }));
+      } else {
+        // Error case - show error message and shake animation
+        const errorMessage = data.message || 'Invalid VPA. Please check and try again.';
+        setUpiError(errorMessage);
+        triggerShakeAnimation();
+        
+        setSettings(prev => ({
+          ...prev,
+          upiDetails: {
+            ...prev.upiDetails,
+            verified: false,
+            verifiedName: '',
+            verificationStatus: 'failed'
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('UPI Verification Error:', error);
+      const errorMessage = 'Network error during UPI verification. Please try again.';
+      setUpiError(errorMessage);
+      triggerShakeAnimation();
+      
+      setSettings(prev => ({
+        ...prev,
+        upiDetails: {
+          ...prev.upiDetails,
+          verified: false,
+          verifiedName: '',
+          verificationStatus: 'failed'
+        }
+      }));
+    } finally {
+      setUpiVerificationLoading(false);
+    }
+  };
+
+  const triggerShakeAnimation = () => {
+    setShowShakeAnimation(true);
+    setTimeout(() => setShowShakeAnimation(false), 500);
+  };
+
   const handleSettingsChange = (category, field, value) => {
     setSettings(prev => {
       if (category === 'amenities') {
@@ -157,10 +252,22 @@ const HostDashboard = () => {
           [field]: value
         };
       } else if (category === 'financial') {
-        return {
-          ...prev,
-          [field]: value
-        };
+        // Handle nested fields for bankDetails and upiDetails
+        if (field.startsWith('bankDetails.') || field.startsWith('upiDetails.')) {
+          const [parentField, childField] = field.split('.');
+          return {
+            ...prev,
+            [parentField]: {
+              ...prev[parentField],
+              [childField]: value
+            }
+          };
+        } else {
+          return {
+            ...prev,
+            [field]: value
+          };
+        }
       } else if (category === 'ai') {
         return {
           ...prev,
@@ -984,9 +1091,174 @@ const HostDashboard = () => {
                             <option value="">Select Method</option>
                             <option value="bank">Bank Transfer</option>
                             <option value="upi">UPI</option>
-                            <option value="paypal">PayPal</option>
-                            <option value="stripe">Stripe</option>
                           </select>
+                          
+                          {/* Bank Details Section */}
+                          {settings.payoutMethod === 'bank' && (
+                            <div className="bg-white p-4 rounded-lg border border-blue-200 space-y-4">
+                              <h5 className="text-sm font-semibold text-gray-700 mb-3">Bank Details</h5>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Account Holder Name</label>
+                                <input
+                                  type="text"
+                                  value={settings.bankDetails.accountHolderName}
+                                  onChange={(e) => handleSettingsChange('financial', 'bankDetails.accountHolderName', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Enter account holder name"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Bank Name</label>
+                                <input
+                                  type="text"
+                                  value={settings.bankDetails.bankName}
+                                  onChange={(e) => handleSettingsChange('financial', 'bankDetails.bankName', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Enter bank name"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Account Number</label>
+                                <input
+                                  type="text"
+                                  value={settings.bankDetails.accountNumber}
+                                  onChange={(e) => handleSettingsChange('financial', 'bankDetails.accountNumber', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Enter account number"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">IFSC Code</label>
+                                <input
+                                  type="text"
+                                  value={settings.bankDetails.ifscCode}
+                                  onChange={(e) => handleSettingsChange('financial', 'bankDetails.ifscCode', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Enter IFSC code"
+                                />
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* UPI Details Section */}
+                          {settings.payoutMethod === 'upi' && (
+                            <div className="bg-white p-4 rounded-lg border border-blue-200 space-y-4">
+                              <h5 className="text-sm font-semibold text-gray-700 mb-3">UPI Details</h5>
+                              
+                              {/* UPI Input with Verify Button */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">UPI ID</label>
+                                <div className="flex space-x-2">
+                                  <input
+                                    type="text"
+                                    value={settings.upiDetails.upiId}
+                                    onChange={(e) => {
+                                      handleSettingsChange('financial', 'upiDetails.upiId', e.target.value);
+                                      // Clear error when user starts typing
+                                      if (upiError) setUpiError('');
+                                    }}
+                                    className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200 ${
+                                      showShakeAnimation 
+                                        ? 'border-red-400 animate-pulse' 
+                                        : upiError 
+                                          ? 'border-red-400' 
+                                          : 'border-gray-300'
+                                    }`}
+                                    placeholder="yourupi@paytm"
+                                  />
+                                  {!settings.upiDetails.verified && settings.upiDetails.upiId && (
+                                    <button
+                                      onClick={handleVerifyUpi}
+                                      disabled={upiVerificationLoading}
+                                      className={`px-4 py-2 text-xs font-medium rounded-lg transition-all duration-200 transform ${
+                                        upiVerificationLoading
+                                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed scale-95'
+                                          : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 active:scale-95'
+                                      }`}
+                                    >
+                                      {upiVerificationLoading ? (
+                                        <span className="flex items-center">
+                                          <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                          </svg>
+                                          Verifying
+                                        </span>
+                                      ) : (
+                                        'Verify'
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                                
+                                {/* Error Message */}
+                                {upiError && (
+                                  <div className={`mt-2 text-xs text-red-600 flex items-center space-x-1 ${
+                                    showShakeAnimation ? 'animate-pulse' : ''
+                                  }`}>
+                                    <FiAlertCircle className="h-3 w-3" />
+                                    <span>{upiError}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Verification Results Section */}
+                              <div className="pt-2">
+                                {/* Skeleton Loading */}
+                                {upiVerificationLoading && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="h-4 w-4 bg-gray-200 rounded-full animate-pulse"></div>
+                                      <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+                                    </div>
+                                    <div className="h-3 w-48 bg-gray-200 rounded animate-pulse"></div>
+                                  </div>
+                                )}
+                                
+                                {/* Verified Success State */}
+                                {settings.upiDetails.verified && registeredName && !upiVerificationLoading && (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="relative">
+                                        <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-75"></div>
+                                        <div className="relative bg-green-500 rounded-full p-1">
+                                          <FiCheck className="h-3 w-3 text-white" />
+                                        </div>
+                                      </div>
+                                      <span className="text-xs font-semibold text-green-600">Verified</span>
+                                    </div>
+                                    <div className="text-xs text-gray-600 flex items-center space-x-1">
+                                      <span>Account Holder:</span>
+                                      <span className="font-medium text-gray-800 bg-green-50 px-2 py-1 rounded-md border border-green-200">
+                                        {registeredName}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Failed Verification State */}
+                                {settings.upiDetails.verificationStatus === 'failed' && !upiVerificationLoading && !upiError && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="bg-red-100 rounded-full p-1">
+                                      <FiX className="h-3 w-3 text-red-600" />
+                                    </div>
+                                    <span className="text-xs font-semibold text-red-600">Verification Failed</span>
+                                  </div>
+                                )}
+                                
+                                {/* Default State */}
+                                {!settings.upiDetails.verified && settings.upiDetails.verificationStatus !== 'failed' && !upiVerificationLoading && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="bg-gray-100 rounded-full p-1">
+                                      <FiInfo className="h-3 w-3 text-gray-600" />
+                                    </div>
+                                    <span className="text-xs font-medium text-gray-600">Not Verified</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center space-x-2 text-xs text-gray-500">
                             <FiShield className="text-blue-600" />
                             Secure payment processing
