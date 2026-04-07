@@ -1601,83 +1601,79 @@ export default function Home() {
                 )}
 
                 <form onSubmit={handleVenueSubmit} className="space-y-6">
-                  {/* Step 1: Basic Details */}
                   {currentStep === 1 && !editingVenue && (
                     <>
                       {/* Basic Information */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Venue Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newVenue.name}
-                        onChange={(e) => handleVenueInputChange('name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Grand Ballroom"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Address *
-                      </label>
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          required
-                          value={newVenue.fullAddress}
-                          onChange={(e) => handleVenueInputChange('fullAddress', e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="123 Main Street, City, State, PIN Code"
-                        />
-                        <button
-                          type="button"
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                          title="Pin on Map"
-                        >
-                          <FiMapPin size={16} />
-                          <span className="hidden sm:inline">Pin on Map</span>
-                        </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Venue Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newVenue.name}
+                            onChange={(e) => handleVenueInputChange('name', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="e.g., Grand Ballroom"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Full Address *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={newVenue.fullAddress}
+                            onChange={(e) => handleVenueInputChange('fullAddress', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="123 Main Street, City, State, PIN Code"
+                          />
+                          <div className="mt-2 pt-2 border-t border-gray-100">
+                            <button
+                              type="button"
+                              className="flex items-center space-x-2 text-sm text-green-600 hover:text-green-700 transition-colors"
+                              title="Pin on map"
+                            >
+                              <FiMapPin size={14} />
+                              <span>Pin on map</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Seating Capacity *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            max="1000"
+                            value={newVenue.seatingCapacity}
+                            onChange={(e) => handleVenueInputChange('seatingCapacity', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="200"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Number of guests that can be seated</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Floating Capacity *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            max="2000"
+                            value={newVenue.floatingCapacity}
+                            onChange={(e) => handleVenueInputChange('floatingCapacity', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="400"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Total guests including standing/cocktail setup</p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Seating Capacity *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        max="1000"
-                        value={newVenue.seatingCapacity}
-                        onChange={(e) => handleVenueInputChange('seatingCapacity', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="200"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Number of guests that can be seated</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Floating Capacity *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        max="2000"
-                        value={newVenue.floatingCapacity}
-                        onChange={(e) => handleVenueInputChange('floatingCapacity', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="400"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Total guests including standing/cocktail setup</p>
-                    </div>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
